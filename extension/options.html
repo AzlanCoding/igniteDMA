@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" style="overflow:auto">
+  <head>
+    <meta charset="utf-8">
+    <meta name = "viewport" content = "width=device-width, initial-scale = 1.0">
+    <meta http-equiv = "X-UA-Compatible" content = "ie=edge">
+    <title>Ignite DMA</title>
+    <link href = "bulma.min.css" rel = "stylesheet" type = "text/css">
+    <style>
+      .table-container th {
+        width: 25%;
+        white-space: nowrap;
+      }
+      .table-container td {
+        width: 75%;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="hero is-primary is-fullheight">
+      <div class="hero-body">
+        <div class="container">
+          <p class="title">Ignite DMA</p>
+          <p class="subtitle">A Device Manager Application (DMA) for students under MOE</p>
+          <div class="box">
+            <div class="table-container is-hidden" id="profile">
+              <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
+                <tbody>
+                  <tr class="is-selected title is-4">
+                    <th>Profile Name</th>
+                    <td id="profileName"></td>
+                  </tr>
+                  <tr>
+                    <th>Time Range</th>
+                    <td id="profileTime"></td>
+                  </tr>
+                  <tr>
+                    <th>Day Range</th>
+                    <td id="profileDay"></td>
+                  </tr>
+                  <tr>
+                    <th>Last Updated</th>
+                    <td id="profileLastUpdated"></td>
+                  </tr>
+                  <tr>
+                    <th>Blocked Sites</th>
+                    <td id="profileBlockedSites"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="content" id="noProfileMsg">
+              No profile added! Click "Add Profile" to continue.
+            </div>
+            <button class="button is-success" id="addProfile">Add Profile</button>
+            <button class="button is-danger is-hidden" id="removeProfile">Remove Profile</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="modal" id="addProfileModal">
+      <div class="modal-background"></div>
+      <div class="modal-content">
+        <div class="box">
+          <div class="field">
+            <label class="label">Profile Code</label>
+            <div class="control">
+              <input class="input" type="text" maxLength="8" placeholder="ABC123" id="classCode" style="text-transform:uppercase"/>
+            </div>
+          </div>
+          <button class="button is-primary" id="addProfileBtn">Add Profile</button>
+        </div>
+      </div>
+      <button class="modal-close is-large" aria-label="close" id="addProfileClose"></button>
+    </div>
+
+    <div class="modal" id="removeProfileModal">
+      <div class="modal-background"></div>
+      <div class="modal-content">
+        <div class="box">
+          <div class="field">
+            <label class="label">Master PIN</label>
+            <div class="control">
+              <input class="input" type="password" id="maserPinInput"/>
+            </div>
+          </div>
+          <button class="button is-danger" id="removeProfileBtn">Remove Profile</button>
+        </div>
+      </div>
+      <button class="modal-close is-large" aria-label="close" id="removeProfileClose"></button>
+    </div>
+    <script src = "scripts.js" type="module"></script>
+  </body>
+</html>

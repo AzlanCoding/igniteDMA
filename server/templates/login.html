@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Login</h3>
+    <div class="box">
+	{% with messages = get_flashed_messages() %}
+	{% if messages %}
+    	    <div class="notification is-danger" id="notifi">
+        	{{ messages[0] }}
+    	    </div>
+	{% endif %}
+	{% endwith %}
+        <form method="POST" action="./login">
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="classId" placeholder="Profile Code" maxLength="8" style="text-transform:uppercase" autofocus="" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="password" name="password" placeholder="Password" required>
+                </div>
+            </div>
+            <div class="field">
+                <label class="checkbox">
+                    <input type="checkbox" name="remember" disabled>
+                    Remember me
+                </label>
+            </div>
+	    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}"/>
+            <button class="button is-block is-info is-large is-fullwidth" onclick="this.classList.add('is-loading')">Login</button>
+        </form>
+    </div>
+</div>
+<script>
+  function checkMsg(){
+    let msg = document.getElementById("notifi");
+    if (msg.innerHTML.includes("success")){
+      msg.classList.remove("is-danger");
+      msg.classList.add("is-success");
+    }
+  }
+  checkMsg()
+</script>
+{% endblock %}

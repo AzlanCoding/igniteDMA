@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Ignite DMA",
+  "version": "0.1",
+  "author": "AzlanCoding",
+  "description": "A Device Manager Application (DMA) for students under MOE",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "webfilter.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "host_permissions": [
+    "http://ignitedma.mooo.com/"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "options_page":"options.html"
+}

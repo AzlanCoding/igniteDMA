@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  Project Ignite!
+</h1>
+<h2 class="subtitle">
+  A Device Manager Application built by <a href="https://azlancoding.github.io"><b>AzlanCoding</b></a> for MOE
+</h2>
+{% if not current_user.is_authenticated %}
+<button id="scanButton" class="button is-primary is-inverted is-outlined" onclick="document.getElementById('scanButton').className = 'button is-loading';window.location.href += 'signup';">Create Profile</button>
+{% endif %}
+{% if current_user.is_authenticated %}
+<button id="scanButton" class="button is-primary is-inverted is-outlined" onclick="document.getElementById('scanButton').className = 'button is-loading';window.location.href += 'profile';">View Profile</button>
+{% endif %}
+<script>
+window.onpageshow= function() {document.getElementById('scanButton').className = "button is-primary is-inverted is-outlined";};//To reset the button
+</script>
+{% endblock %}

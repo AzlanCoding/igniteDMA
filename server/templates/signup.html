@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Sign Up</h3>
+    <div class="box">
+	{% with messages = get_flashed_messages() %}
+	{% if messages %}
+    	    <div class="notification is-danger">
+        	{{ messages[0] }}
+    	    </div>
+	{% endif %}
+	{% endwith %}
+        <form method="POST" action="/signup" onsubmit="checkPass()">
+
+            <div class="field">
+                <label class="label">Profile Code</label>
+                <div class="control">
+                    <input class="input is-large" type="text" name="classId" placeholder="Profile Code"  maxLength="8" readOnly value="{{ classId }}" required>
+                    <p>Make sure to copy and save this class code as you will need it to login to the system!</p>
+                </div>
+            </div>
+            <br>
+            <div class="field">
+                      <label class="label">Master Pin</label>
+                      <div class="control">
+                          <input class="input is-large" type="password" name="masterPin" placeholder="Master Pin" autofocus="" required>
+                          <p>Place the provided Master PIN in the field above.</p>
+                      </div>
+                  </div>
+            <br>
+
+	    <div class="field">
+                <label class="label">Profile Details</label>
+                <div class="control">
+                    <input class="input is-large" type="text" name="className" placeholder="Profile Name" autofocus=""  maxLength="30" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="password" name="password" id="pass1" placeholder="Password" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="password" name="passwordConfirm"  id="pass2" placeholder="Confirm Password" required>
+                </div>
+            </div>
+
+            <button class="button is-block is-info is-large is-fullwidth" onclick="this.classList.add('is-loading')" id="submitBtn">Sign Up</button>
+        </form>
+        <script>
+          function checkPass(){
+            if (document.getElementById("pass1").value != document.getElementById("pass2").value){
+              event.preventDefault();
+              alert('Passwords do not match!');
+              document.getElementById("submitBtn").classList.remove("is-loading");
+            }
+          }
+        </script>
+    </div>
+</div>
+{% endblock %}

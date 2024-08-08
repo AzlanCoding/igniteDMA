@@ -1,0 +1,13 @@
+{
+  "className": "Default Profile Rules",
+  "blockedSites": [
+    "crazygames.com",
+    "poki.com"
+  ],
+  "startHour": 8,
+  "startMin": 0,
+  "endHour": 14,
+  "endMin": 30,
+  "enforceDays":"12345",
+  "lastUpdated": 1723108374000
+}
