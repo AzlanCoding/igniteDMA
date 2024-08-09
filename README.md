@@ -13,7 +13,7 @@ The extension checks for updates from the profile every 30 seconds. Manual refre
 This full stack application does not collect any personal data nor does it have any major control over the users' devices. Thus even if compromised, there is nothing to lose.
 
 ## TODO
-- [x] Extension: Migrate to use `declarativeNetRequest` API
+- [x] Extension: Implement `declarativeNetRequest` API
 - [ ] Extension: Show error message when it fails to contact Server
 - [ ] Extension: Implement manual profile refresh button.
 - [ ] Github Pages for this repo.
