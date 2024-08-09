@@ -5,6 +5,8 @@ The first version of this application was made in less than 3 days and is curren
 I have always believed that Singapore needed our own internal solution for a DMA to accommodate for the various needs of studnets and teachers. Thus I plan to further develop this project after my GCE O'Level examinations.<br>
 <br>
 The server is based off a past project which is based off a tutorial found [here](https://www.digitalocean.com/community/tutorials/how-to-add-authentication-to-your-app-with-flask-login).
+<br>
+This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 
 ## Important Notes
 The extension checks for updates from the profile every 30 seconds. Manual refresh is not implemented yet but it can still be done by restarting the device.<br>
@@ -14,10 +16,10 @@ This full stack application does not collect any personal data nor does it have 
 
 ## TODO
 - [x] Extension: Implement `declarativeNetRequest` API
+- [x] Server: Configure DDNS update script
 - [ ] Extension: Show error message when it fails to contact Server
 - [ ] Extension: Implement manual profile refresh button.
 - [ ] Github Pages for this repo.
-- [ ] Server: Configure DDNS update script
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
 - [ ] Extension: Publish to Chrome Web Store (Maybe?)
 - [ ] Server: Create delete profile option
