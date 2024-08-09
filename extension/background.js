@@ -10,6 +10,30 @@ function setBlockedSites(data){
   if ((data.enforceDays.includes(d.getDay())) && ((secondsStartSince2400 <= secondsNowSince2400) && (secondsEndSince2400 > secondsNowSince2400))){
     chrome.storage.sync.set({"blockedSites": data.blockedSites }).then(() => {
       console.log("blockedSites is set");
+      let newrules = data.blockedSites.map((site, index) => ({
+        id: index + 1,
+        priority: 1,
+        action: { type: "block" },
+        condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
+      }));
+      //The code below requires the setting "site access" to be set to "on all sites".
+      //The setting "site access" is usually set to "on all sites" by default.
+      //Thus, if students change it, the webfilter will not work.
+      //Therefore, it is not implemented yet.
+      /*let newrules = data.blockedSites.map((site, index) => ({
+        id: index + 1,
+        priority: 1,
+        action: { type: "redirect", "redirect": { "url": encodeURI(chrome.runtime.getURL("blocked.html")+"?profile="+data.className+"&site="+site) } },
+        condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
+      }));*/
+      chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
+        const oldRuleIds = oldRules.map(rule => rule.id);
+        console.log(oldRuleIds);
+        chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: oldRuleIds,
+          addRules: newrules
+        });
+      });
     });
     return true;
   }
@@ -38,29 +62,15 @@ function checkUpdate(classId){
   fetch(updateHost+"/api/v0/findClass/"+classId, {cache: "no-cache"}).then(x => x.json()).then((data) => {
     let classKey = "class"+classId;
     chrome.storage.sync.get([classKey]).then((result) => {
-      console.dir(result);
       if ((data.forceUpdateNow) || (data.lastUpdated > result["class"+classId].lastUpdateFetch)){
         getUpdates(classId);
       }
     }).catch((err) => {
       getUpdates(classId);
-      console.log("ERROR: "+err)
+      console.error("ERROR: "+err)
     });
   });
 }
-
-/*function updateInterval(){
-  chrome.storage.sync.get(["activeClassId"]).then((result) => {
-    console.log("classId is " + result.activeClassId);
-    if (result.activeClassId != null){
-      checkUpdate(result.activeClassId);
-    }
-    else {
-      console.log("waiting for registration");
-    }
-  });
-}*/
-
 
 function syncProfiles(){
   chrome.storage.sync.get().then((result) => {
@@ -74,7 +84,6 @@ function syncProfiles(){
     console.dir(classList);
     let hasActiveProfile = false;
     Object.entries(classList).forEach(([classId, data]) => {
-      console.log("Checking class "+classId);
       checkUpdate(classId);
       if (setBlockedSites(data)){
         hasActiveProfile = true;
@@ -102,22 +111,8 @@ export function getUpdateHost(){
 
 
 
-/*chrome.webRequest.onBeforeRequest.addListener(
-  function(details) {
-    console.dir(details);
-    return {cancel: details.url.indexOf("://www.evil.com/") != -1};
-  },
-  {urls: ["<all_urls>"]},
-  ["blocking"]
-);*/
 
-
-
-
-
-
-
-
-//setInterval(updateInterval, 5000)
+setInterval(syncProfiles, 30000);
+//This ^^^ needs to be on top of the other function so that if the first fetch
+//to contact the server fails, system will continue to try to contact the server
 syncProfiles();
-setInterval(syncProfiles, 5000);

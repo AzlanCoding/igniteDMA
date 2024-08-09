@@ -30,7 +30,7 @@ function closeModal(modalId){
 function addClassCode(){
   document.getElementById("addProfileBtn").classList.add("is-loading");
   let classCode = document.getElementById("classCode").value.toLowerCase();
-  fetch(updateHost+"/api/v0/getClass/"+classCode).then((response) => {
+  fetch(updateHost+"/api/v0/getClass/"+classCode,{cache: "no-cache"}).then((response) => {
       if (!response.ok) {
         alert("Invalid Class Code!");
         document.getElementById("addProfileBtn").classList.remove("is-loading");
@@ -46,7 +46,7 @@ function addClassCode(){
 
 function masterPin(){
   document.getElementById("removeProfileBtn").classList.add("is-loading");
-  fetch(updateHost+"/api/v0/masterPin",{method:"post", headers: {'PIN': document.getElementById('maserPinInput').value}}).then((response) => {
+  fetch(updateHost+"/api/v0/masterPin",{cache: "no-cache", method:"post", headers: {'PIN': document.getElementById('maserPinInput').value}}).then((response) => {
     if (response.ok) {
       chrome.storage.sync.clear().then(()=>{
         alert("REMOVAL PROCESS SUCCESS!");

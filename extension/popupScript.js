@@ -1,1 +1,1 @@
-chrome.tabs.create({ 'url': 'chrome-extension://' + chrome.runtime.id + '/options.html'});
+chrome.tabs.create({ 'url': chrome.runtime.getURL("options.html")});
