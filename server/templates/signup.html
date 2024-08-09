@@ -11,7 +11,7 @@
     	    </div>
 	{% endif %}
 	{% endwith %}
-        <form method="POST" action="/signup" onsubmit="checkPass()">
+        <form method="POST" action="/signup" onsubmit="checkPass()" id="signupForm">
 
             <div class="field">
                 <label class="label">Profile Code</label>
@@ -49,7 +49,7 @@
                 </div>
             </div>
 
-            <button class="button is-block is-info is-large is-fullwidth" onclick="this.classList.add('is-loading')" id="submitBtn">Sign Up</button>
+            <button class="button is-block is-info is-large is-fullwidth" onclick="if(document.getElementById('signupForm').reportValidity()){this.classList.add('is-loading')}" id="submitBtn">Sign Up</button>
         </form>
         <script>
           function checkPass(){

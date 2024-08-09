@@ -173,7 +173,7 @@
                 </tbody>
               </table>
               <textarea type="text" class="is-hidden" id="blockedSitesList" name="blockedSitesList" hidden></textarea>
-              <button class="button is-success" id="saveProfile" type="submit" onclick="this.classList.add('is-loading');updateBlockedSitesList();">Save Changes</button>
+              <button class="button is-success" id="saveProfile" type="submit" onclick="updateBlockedSitesList();if(document.getElementById('editProfile').reportValidity()){this.classList.add('is-loading');}">Save Changes</button>
               <button class="button is-danger" id="uneditProfile" onclick="if(confirm('Discard changes?')){renderUI(false);}event.preventDefault();">Cancel</button>
             </form>
             <button class="button is-warning" id="editProfileBtn" onclick="renderUI(true)">Edit Profile</button>
