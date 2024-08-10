@@ -10,7 +10,7 @@
     "type": "module"
   },
   "host_permissions": [
-    "http://ignitedma.mooo.com/*",
+    "https://ignitedma.mooo.com/*",
     "*://*/*"
   ],
   "action": {
