@@ -120,7 +120,7 @@
                 </tbody>
               </table>
             </div>
-            <form class="table-container" id="editProfile" method="POST" action="/profile">
+            <form class="table-container" id="editProfile" method="POST" action="/profile" onsubmit="checkTime()">
               <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
                 <tbody>
                   <tr class="is-selected title is-4">
@@ -428,6 +428,17 @@
       }
 
 
+      function checkTime() {
+        let startTime = document.getElementById("editTimeStart").value.split(":");
+        let endTime = document.getElementById("editTimeEnd").value.split(":");
+        let startMins = Number(startTime[1])+(Number(startTime[0])*60);
+        let endMins = Number(endTime[1])+(Number(endTime[0])*60);
+        if (startMins >= endMins){
+          event.preventDefault();
+          alert('Invalid Time! Start time must be before end time!');
+          document.getElementById("saveProfile").classList.remove("is-loading");
+        }
+      }
 
 
 
