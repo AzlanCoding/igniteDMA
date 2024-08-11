@@ -9,7 +9,7 @@ The server is based off a past project which is based off a tutorial found [here
 This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 
 ## Important Notes
-The extension checks for updates from the profile every 30 seconds. Manual refresh is not implemented yet but it can still be done by restarting the device.<br>
+The extension checks for updates from the profile every 30 seconds. You can force a refresh by pressing `Refresh Profile` in the options page.<br>
 **FOR ADMINISTRATORS:** When force installing the extension on students' devices, `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.
 ## Security
 This full stack application does not collect any personal data nor does it have any major control over the users' devices. Thus even if compromised, there is nothing to lose.
@@ -17,17 +17,18 @@ This full stack application does not collect any personal data nor does it have 
 ## TODO
 - [x] Extension: Implement `declarativeNetRequest` API
 - [x] Server: Configure DDNS update script
-- [ ] Extension: Show error message when it fails to contact Server
-- [ ] Extension: Implement manual profile refresh button.
-- [ ] Github Pages for this repo.
+- [x] Extension (`options.html`): Add last refreshed field. (i.e. last time the extension successfully to contact the server)
+- [x] Extension (`options.html`): Implement manual profile refresh button.
+- [ ] Extension (`background.js`): Show error notification when it fails to contact Server
+- [ ] Github Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
-- [ ] Extension: Publish to Chrome Web Store (Maybe?)
 - [ ] Server: Create delete profile option
+- [ ] Extension: Publish to Chrome Web Store (Maybe?)
 - [ ] Extension (`popup.html`): Only allow one `options.html` page to be visible at all times.
 - [ ] Extension (`options.html`): Dynamically refresh page.
-- [ ] Extension (`options.html`): Add last checked field. (i.e. last time the extension successfully to contact the server)
 - [ ] Server (`class.html`): Add Nav Bar (Relink to `base.html`)
 - [ ] Server (`class.html`): Restyle `notifi` (`z-index`?, `top`?, `margin: auto`?)
+- [ ] Server (`class.html`) & Extension (`options.html`): Restyle blockedSites field.
 - [ ] Server: Code cleanup
 - [ ] App Icon
 - [ ] Server: Create reset profile password feature?

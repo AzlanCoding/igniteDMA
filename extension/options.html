@@ -39,8 +39,12 @@
                     <td id="profileDay"></td>
                   </tr>
                   <tr>
-                    <th>Last Updated</th>
+                    <th>Last Modified</th>
                     <td id="profileLastUpdated"></td>
+                  </tr>
+                  <tr>
+                    <th>Last Refresh</th>
+                    <td id="profileLastFetch"></td>
                   </tr>
                   <tr>
                     <th>Blocked Sites</th>
@@ -53,6 +57,7 @@
               No profile added! Click "Add Profile" to continue.
             </div>
             <button class="button is-success" id="addProfile">Add Profile</button>
+            <button class="button is-success is-hidden" id="refreshProfileBtn">Refresh Profile</button>
             <button class="button is-danger is-hidden" id="removeProfile">Remove Profile</button>
           </div>
         </div>

@@ -45,13 +45,14 @@ function setBlockedSites(data){
 
 function getUpdates(classId){
   return fetch(updateHost+"/api/v0/getClass/"+classId, {cache: "no-cache"}).then(x => x.json()).then((data) => {
+    data.lastUpdateReceive = new Date().getTime();
     data.lastUpdateFetch = new Date().getTime();
+    //lastUpdateReceive is the last time the extension updated the profile.
+    //lastUpdateFetch is the last time the extension checked for updates on the profile.
     let save = new Object();
     save["class"+classId] = data;
     chrome.storage.sync.set(save).then(() => {
       console.log("Class "+classId+" is updated");
-      //setBlockedSites(data);
-      //syncProfiles();
     });
   });
 }
@@ -59,11 +60,15 @@ function getUpdates(classId){
 
 function checkUpdate(classId){
   console.log("get Updates");
-  fetch(updateHost+"/api/v0/findClass/"+classId, {cache: "no-cache"}).then(x => x.json()).then((data) => {
+  return fetch(updateHost+"/api/v0/findClass/"+classId, {cache: "no-cache"}).then(x => x.json()).then((data) => {
     let classKey = "class"+classId;
     chrome.storage.sync.get([classKey]).then((result) => {
-      if ((data.forceUpdateNow) || (data.lastUpdated > result["class"+classId].lastUpdateFetch)){
+      if ((data.forceUpdateNow) || (data.lastUpdated > result["class"+classId].lastUpdateReceive)){
         getUpdates(classId);
+      }
+      else{
+        result["class"+classId].lastUpdateFetch = new Date().getTime();
+        chrome.storage.sync.set(result);
       }
     }).catch((err) => {
       getUpdates(classId);

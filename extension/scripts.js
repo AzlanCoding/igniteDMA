@@ -83,11 +83,26 @@ function renderUI(){
       document.getElementById("addProfile").classList.add("is-hidden");
       document.getElementById("profile").classList.remove("is-hidden");
       document.getElementById("removeProfile").classList.remove("is-hidden");
+      document.getElementById("refreshProfileBtn").classList.remove("is-hidden");
       document.getElementById("profileName").innerHTML = profile.className;
       document.getElementById("profileTime").innerHTML = formatTimeRange(profile.startHour, profile.startMin, profile.endHour, profile.endMin)
       document.getElementById("profileDay").innerHTML = replaceWithDaysOfWeek(profile.enforceDays);
       document.getElementById("profileLastUpdated").innerHTML = new Date(profile.lastUpdated).toLocaleString();
+      document.getElementById("profileLastFetch").innerHTML = new Date(profile.lastUpdateFetch).toLocaleString();
       document.getElementById("profileBlockedSites").innerHTML = profile.blockedSites.join("<br>");
+
+      document.getElementById("refreshProfileBtn").addEventListener("click", () => {
+        document.getElementById("refreshProfileBtn").classList.add("is-loading");
+        addClass(Object.keys(classList)[0]).then(() => {
+          window.location.reload();
+          //I will uncomment this when dynamic refresh is implemented.
+          //renderUI();
+          //document.getElementById("refreshProfileBtn").classList.remove("is-loading");
+        }).catch((err) => {
+          alert("FAILED TO CONTACT SERVER!\nERROR: "+err);
+          document.getElementById("refreshProfileBtn").classList.remove("is-loading");
+        });
+      });
     }
     /*else {
       document.getElementById("noProfileMsg").classList.remove("is-hidden");
