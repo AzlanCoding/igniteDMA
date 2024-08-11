@@ -67,6 +67,16 @@ function renderUI(){
   document.getElementById("removeProfileClose").addEventListener("click", () => {closeModal("removeProfileModal")});
   document.getElementById("addProfileBtn").addEventListener("click",addClassCode);
   document.getElementById("removeProfileBtn").addEventListener("click",masterPin);
+  document.getElementById("classCode").addEventListener("keypress", () => {
+    if (event.key === 'Enter') {
+      document.getElementById("addProfileBtn").click();
+    }
+  });
+  document.getElementById("maserPinInput").addEventListener("keypress", () => {
+    if (event.key === 'Enter') {
+      document.getElementById("removeProfileBtn").click();
+    }
+  });
   chrome.storage.sync.get().then((result) => {
     let classList = Object.keys(result)
       .filter(key => key.startsWith('class'))
