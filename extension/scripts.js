@@ -60,6 +60,26 @@ function masterPin(){
 }
 
 
+function createBlockedSiteData(value){
+  const container = document.getElementById('profileBlockedSites');
+  const newInput = document.createElement('input');
+  newInput.type = 'text';
+  newInput.className = 'blocked-site-data input';
+  newInput.value = value;
+  newInput.readOnly = true;
+
+  container.appendChild(newInput);
+}
+
+
+function clearData(){
+  let datas = document.querySelectorAll('.blocked-site-data');
+  datas.forEach((data) => {
+    data.remove();
+  });
+}
+
+
 function renderUI(){
   document.getElementById("addProfile").addEventListener("click", () => {openModal("addProfileModal")});
   document.getElementById("addProfileClose").addEventListener("click", () => {closeModal("addProfileModal")});
@@ -99,7 +119,12 @@ function renderUI(){
       document.getElementById("profileDay").innerHTML = replaceWithDaysOfWeek(profile.enforceDays);
       document.getElementById("profileLastUpdated").innerHTML = new Date(profile.lastUpdated).toLocaleString();
       document.getElementById("profileLastFetch").innerHTML = new Date(profile.lastUpdateFetch).toLocaleString();
-      document.getElementById("profileBlockedSites").innerHTML = profile.blockedSites.join("<br>");
+      //document.getElementById("profileBlockedSites").innerHTML = profile.blockedSites.join("<br>");
+      clearData();
+      profile.blockedSites.forEach((site) => {
+        createBlockedSiteData(site);
+      });
+
 
       document.getElementById("refreshProfileBtn").addEventListener("click", () => {
         document.getElementById("refreshProfileBtn").classList.add("is-loading");

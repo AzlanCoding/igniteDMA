@@ -8,11 +8,13 @@
     <link href = "bulma.min.css" rel = "stylesheet" type = "text/css">
     <style>
       .table-container th {
-        width: 25%;
         white-space: nowrap;
       }
       .table-container td {
-        width: 75%;
+        width: 100%;
+      }
+      .blocked-site-data {
+        width: unset;
       }
     </style>
   </head>
@@ -48,7 +50,7 @@
                   </tr>
                   <tr>
                     <th>Blocked Sites</th>
-                    <td id="profileBlockedSites"></td>
+                    <td><div id="profileBlockedSites"></div></td>
                   </tr>
                 </tbody>
               </table>

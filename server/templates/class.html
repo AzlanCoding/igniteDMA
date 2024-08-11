@@ -8,11 +8,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css" />
     <style>
       .table-container th {
-        width: 25%;
         white-space: nowrap;
       }
       .table-container td {
-        width: 75%;
+        width: 100%;
       }
       #profileTimeEdit label {
         display: inline;
@@ -69,6 +68,9 @@
         opacity: 0;
         transition: opacity 1.5s;
       }
+      .blocked-site-data {
+        width: unset;
+      }
     </style>
   </head>
   <body>
@@ -115,7 +117,7 @@
                   </tr>
                   <tr>
                     <th>Blocked Sites</th>
-                    <td id="profileBlockedSites"></td>
+                    <td><div id="profileBlockedSites"></div></td>
                   </tr>
                 </tbody>
               </table>
@@ -245,7 +247,11 @@
         document.getElementById("profileTime").innerHTML = formatTimeRange(profile.startHour, profile.startMin, profile.endHour, profile.endMin)
         document.getElementById("profileDay").innerHTML = replaceWithDaysOfWeek(profile.enforceDays);
         document.getElementById("profileLastUpdated").innerHTML = new Date(profile.lastUpdated).toLocaleString();
-        document.getElementById("profileBlockedSites").innerHTML = profile.blockedSites.join("<br>");
+        //document.getElementById("profileBlockedSites").innerHTML = profile.blockedSites.join("<br>");
+        clearData();
+        profile.blockedSites.forEach((site) => {
+          createBlockedSiteData(site);
+        });
 
         document.getElementById("profileNameEdit").value = profile.className;
         document.getElementById("profileCodeEdit").value = profile.classId;
@@ -438,6 +444,27 @@
           alert('Invalid Time! Start time must be before end time!');
           document.getElementById("saveProfile").classList.remove("is-loading");
         }
+      }
+
+
+
+      function createBlockedSiteData(value){
+        const container = document.getElementById('profileBlockedSites');
+        const newInput = document.createElement('input');
+        newInput.type = 'text';
+        newInput.className = 'blocked-site-data input';
+        newInput.value = value;
+        newInput.readOnly = true;
+
+        container.appendChild(newInput);
+      }
+
+
+      function clearData(){
+        let datas = document.querySelectorAll('.blocked-site-data');
+        datas.forEach((data) => {
+          data.remove();
+        });
       }
 
 

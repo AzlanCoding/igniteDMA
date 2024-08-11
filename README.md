@@ -19,6 +19,7 @@ This full stack application does not collect any personal data nor does it have 
 - [x] Server: Configure DDNS update script
 - [x] Extension (`options.html`): Add last refreshed field. (i.e. last time the extension successfully to contact the server)
 - [x] Extension (`options.html`): Implement manual profile refresh button.
+- [x] Server (`class.html`) & Extension (`options.html`): Restyle blockedSites field.
 - [ ] Extension (`background.js`): Show error notification when it fails to contact Server
 - [ ] Github Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
@@ -28,7 +29,6 @@ This full stack application does not collect any personal data nor does it have 
 - [ ] Extension (`options.html`): Dynamically refresh page.
 - [ ] Server (`class.html`): Add Nav Bar (Relink to `base.html`)
 - [ ] Server (`class.html`): Restyle `notifi` (`z-index`?, `top`?, `margin: auto`?)
-- [ ] Server (`class.html`) & Extension (`options.html`): Restyle blockedSites field.
 - [ ] Server: Code cleanup
 - [ ] App Icon
 - [ ] Server: Create reset profile password feature?
