@@ -20,6 +20,7 @@ This full stack application does not collect any personal data nor does it have 
 - [x] Extension (`options.html`): Add last refreshed field. (i.e. last time the extension successfully to contact the server)
 - [x] Extension (`options.html`): Implement manual profile refresh button.
 - [x] Server (`class.html`) & Extension (`options.html`): Restyle blockedSites field.
+- [x] Extension (`options.html`): Dynamically update page.
 - [ ] Server (`class.html`): Highlight repeated URLs
 - [ ] Extension (`background.js`): Show error notification when it fails to contact Server
 - [ ] Github Pages for this project (docs).
@@ -27,7 +28,6 @@ This full stack application does not collect any personal data nor does it have 
 - [ ] Server: Create delete profile option
 - [ ] Extension: Publish to Chrome Web Store (Maybe?)
 - [ ] Extension (`popup.html`): Only allow one `options.html` page to be visible at all times.
-- [ ] Extension (`options.html`): Dynamically refresh page.
 - [ ] Server (`class.html`): Add Nav Bar (Relink to `base.html`)
 - [ ] Server (`class.html`): Restyle `notifi` (`z-index`?, `top`?, `margin: auto`?)
 - [ ] Server: Code cleanup

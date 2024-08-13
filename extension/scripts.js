@@ -149,4 +149,8 @@ function renderUI(){
 }
 
 
+chrome.storage.onChanged.addListener(() => {
+  renderUI();
+});
+
 renderUI();
