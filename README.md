@@ -20,6 +20,7 @@ This full stack application does not collect any personal data nor does it have 
 - [x] Extension (`options.html`): Add last refreshed field. (i.e. last time the extension successfully to contact the server)
 - [x] Extension (`options.html`): Implement manual profile refresh button.
 - [x] Server (`class.html`) & Extension (`options.html`): Restyle blockedSites field.
+- [ ] Server (`class.html`): Highlight repeated URLs
 - [ ] Extension (`background.js`): Show error notification when it fails to contact Server
 - [ ] Github Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
