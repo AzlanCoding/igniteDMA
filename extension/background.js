@@ -1,5 +1,6 @@
 let updateHost = "https://ignitedma.mooo.com"//Production Server
 //let updateHost = "http://127.0.0.1"//Development Server
+let showBlockedPage = true;
 
 
 function setBlockedSites(data){
@@ -10,22 +11,27 @@ function setBlockedSites(data){
   if ((data.enforceDays.includes(d.getDay())) && ((secondsStartSince2400 <= secondsNowSince2400) && (secondsEndSince2400 > secondsNowSince2400))){
     chrome.storage.sync.set({"blockedSites": data.blockedSites }).then(() => {
       console.log("blockedSites is set");
-      let newrules = data.blockedSites.map((site, index) => ({
-        id: index + 1,
-        priority: 1,
-        action: { type: "block" },
-        condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
-      }));
-      //The code below requires the setting "site access" to be set to "on all sites".
-      //The setting "site access" is usually set to "on all sites" by default.
-      //Thus, if students change it, the webfilter will not work.
-      //Therefore, it is not implemented yet.
-      /*let newrules = data.blockedSites.map((site, index) => ({
-        id: index + 1,
-        priority: 1,
-        action: { type: "redirect", "redirect": { "url": encodeURI(chrome.runtime.getURL("blocked.html")+"?profile="+data.className+"&site="+site) } },
-        condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
-      }));*/
+      let newrules;
+      if (showBlockedPage){
+        //The code below requires the setting "site access" to be set to "on all sites".
+        //The setting "site access" is usually set to "on all sites" by default.
+        //Thus, if students change it, the webfilter will not work.
+        //Therefore, it is partially implemented.
+        newrules = data.blockedSites.map((site, index) => ({
+          id: index + 1,
+          priority: 1,
+          action: { type: "redirect", "redirect": { "url": encodeURI(chrome.runtime.getURL("blocked.html")+"?profile="+data.className+"&site="+site) } },
+          condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
+        }));
+      }
+      else{
+        newrules = data.blockedSites.map((site, index) => ({
+          id: index + 1,
+          priority: 1,
+          action: { type: "block" },
+          condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
+        }));
+      }
       chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
         const oldRuleIds = oldRules.map(rule => rule.id);
         console.log(oldRuleIds);
