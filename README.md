@@ -33,3 +33,8 @@ This full stack application does not collect any personal data nor does it have 
 - [ ] Server: Code cleanup
 - [ ] App Icon
 - [ ] Server: Create reset profile password feature?
+- [ ] Extension (`background.js`): Implement Error Handling.
+- [ ] Extension: Use tabs API. (If student opens website after sch hours and leaves it there, extension does not block yet)
+- [ ] Extension: Detect use of project [pillow](https://github.com/S1monlol/pillow)
+- [ ] Extension: Implement End-to-End Encryption to prevent server impersonation. (Students may fork server and bypass)
+- [ ] Extension: Notify user if about to start profile

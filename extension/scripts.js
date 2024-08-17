@@ -1,4 +1,4 @@
-import { addClass, removeClass, getUpdateHost } from "./background.js";
+import { addClass, removeClass, getUpdateHost, syncNow } from "./background.js";
 
 let updateHost = getUpdateHost();
 
@@ -80,24 +80,9 @@ function clearData(){
 }
 
 
+
 function renderUI(){
-  document.getElementById("addProfile").addEventListener("click", () => {openModal("addProfileModal")});
-  document.getElementById("addProfileClose").addEventListener("click", () => {closeModal("addProfileModal")});
-  document.getElementById("removeProfile").addEventListener("click", () => {openModal("removeProfileModal")});
-  document.getElementById("removeProfileClose").addEventListener("click", () => {closeModal("removeProfileModal")});
-  document.getElementById("addProfileBtn").addEventListener("click",addClassCode);
-  document.getElementById("removeProfileBtn").addEventListener("click",masterPin);
-  document.getElementById("classCode").addEventListener("keypress", () => {
-    if (event.key === 'Enter') {
-      document.getElementById("addProfileBtn").click();
-    }
-  });
-  document.getElementById("maserPinInput").addEventListener("keypress", () => {
-    if (event.key === 'Enter') {
-      document.getElementById("removeProfileBtn").click();
-    }
-  });
-  chrome.storage.sync.get().then((result) => {
+  return chrome.storage.sync.get().then((result) => {
     let classList = Object.keys(result)
       .filter(key => key.startsWith('class'))
       .reduce((obj, key) => {
@@ -105,10 +90,10 @@ function renderUI(){
         obj[newKey] = result[key];
         return obj;
       }, {});
-    console.dir(classList);
+    //console.dir(classList);
     if (Object.keys(classList).length > 0){
       let profile = Object.values(classList)[0];
-      console.dir(profile);
+      //console.dir(profile);
       document.getElementById("noProfileMsg").classList.add("is-hidden");
       document.getElementById("addProfile").classList.add("is-hidden");
       document.getElementById("profile").classList.remove("is-hidden");
@@ -119,32 +104,11 @@ function renderUI(){
       document.getElementById("profileDay").innerHTML = replaceWithDaysOfWeek(profile.enforceDays);
       document.getElementById("profileLastUpdated").innerHTML = new Date(profile.lastUpdated).toLocaleString();
       document.getElementById("profileLastFetch").innerHTML = new Date(profile.lastUpdateFetch).toLocaleString();
-      //document.getElementById("profileBlockedSites").innerHTML = profile.blockedSites.join("<br>");
       clearData();
       profile.blockedSites.forEach((site) => {
         createBlockedSiteData(site);
       });
-
-
-      document.getElementById("refreshProfileBtn").addEventListener("click", () => {
-        document.getElementById("refreshProfileBtn").classList.add("is-loading");
-        addClass(Object.keys(classList)[0]).then(() => {
-          window.location.reload();
-          //I will uncomment this when dynamic refresh is implemented.
-          //renderUI();
-          //document.getElementById("refreshProfileBtn").classList.remove("is-loading");
-        }).catch((err) => {
-          alert("FAILED TO CONTACT SERVER!\nERROR: "+err);
-          document.getElementById("refreshProfileBtn").classList.remove("is-loading");
-        });
-      });
     }
-    /*else {
-      document.getElementById("noProfileMsg").classList.remove("is-hidden");
-      document.getElementById("addProfile").classList.remove("is-hidden");
-      document.getElementById("profile").classList.add("is-hidden");
-      document.getElementById("removeProfile").classList.add("is-hidden");
-    }*/
   });
 }
 
@@ -152,5 +116,56 @@ function renderUI(){
 chrome.storage.onChanged.addListener(() => {
   renderUI();
 });
+
+
+//Setup EventListeners
+document.getElementById("addProfile").addEventListener("click", () => {openModal("addProfileModal")});
+document.getElementById("addProfileClose").addEventListener("click", () => {closeModal("addProfileModal")});
+document.getElementById("removeProfile").addEventListener("click", () => {openModal("removeProfileModal")});
+document.getElementById("removeProfileClose").addEventListener("click", () => {closeModal("removeProfileModal")});
+document.getElementById("addProfileBtn").addEventListener("click",addClassCode);
+document.getElementById("removeProfileBtn").addEventListener("click",masterPin);
+document.getElementById("classCode").addEventListener("keypress", () => {
+  if (event.key === 'Enter') {
+    document.getElementById("addProfileBtn").click();
+  }
+});
+document.getElementById("maserPinInput").addEventListener("keypress", () => {
+  if (event.key === 'Enter') {
+    document.getElementById("removeProfileBtn").click();
+  }
+});
+document.getElementById("refreshProfileBtn").addEventListener("click", () => {
+  console.log("hi");
+  document.getElementById("refreshProfileBtn").classList.add("is-loading");
+  //chrome.runtime.sendMessage('syncProfiles', () => {
+  let canContinue = true;
+  syncNow().then(() => {
+    return setTimeout(() => {
+      renderUI().then(() => {
+        //Actually, renderUI does not need to be called again
+        //There is already dynamic refreh
+        alert("Profile refreshed!")
+        document.getElementById("refreshProfileBtn").classList.remove("is-loading");
+      });
+      //TODO: Implement notifi
+    }, 1000);//This is to prevent spamming of the button
+  }).catch((err) => {
+    if (err.message && err.message.includes("This request exceeds the MAX_WRITE_OPERATIONS_PER_MINUTE quota.")){
+      alert("STOP SPAMMING `REFRESH PROFILE` YOU'RE BREAKING THE APP\n"+err+"\nREFRESHING PAGE...");
+      canContinue = false;
+      window.location.reload();
+      // BUG: Uncaught (in promise) Error: This request exceeds the MAX_WRITE_OPERATIONS_PER_MINUTE quota.
+      // Caused when `Refresh Profile` is spammed
+    }
+    else{
+      if (canContinue){
+        alert("FAILED TO CONTACT SERVER!\n"+err);
+      }
+      document.getElementById("refreshProfileBtn").classList.remove("is-loading");
+    }
+  });
+});
+
 
 renderUI();
