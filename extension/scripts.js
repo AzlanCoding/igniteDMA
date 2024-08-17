@@ -112,7 +112,7 @@ function renderUI(){
   });
 }
 
-
+//Dynamic Refresh
 chrome.storage.onChanged.addListener(() => {
   renderUI();
 });

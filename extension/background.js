@@ -159,7 +159,7 @@ export function syncNow(){
 
 
 
-//setInterval(syncProfiles, 30000);
+setInterval(syncProfiles, 30000);
 //This ^^^ needs to be on top of the other function so that if the first fetch
 //to contact the server fails, system will continue to try to contact the server
-//syncProfiles();
+syncProfiles();
