@@ -1,6 +1,5 @@
-//let updateHost = "https://ignitedma.mooo.com"//Production Server
+let updateHost = "https://ignitedma.mooo.com"//Production Server
 //let updateHost = "http://127.0.0.1"//Development Server
-let updateHost = "http://192.168.1.45"
 let useLegacyBlocking = false;
 
 
@@ -31,7 +30,7 @@ function setBlockedSitesData(data){
       newrules = data.blockedSites.map((site, index) => ({
         id: index + 1,
         priority: 1,
-        action: { type: "redirect", "redirect": { "url": encodeURI(chrome.runtime.getURL("blocked.html")+"?profile="+data.className+"&site="+site) } },
+        action: { type: "redirect", "redirect": { "url": (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(data.className)+"&site="+encodeURI(site)) } },
         condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
       }));
     }
@@ -42,6 +41,28 @@ function setBlockedSitesData(data){
         addRules: newrules
       });
     });
+    //Check for any existing tabs open
+    return chrome.tabs.query({}).then(tabs => {
+      let webTabs = tabs.filter(tab => {
+        return tab.url.startsWith('http://') || tab.url.startsWith('https://');
+      });
+      let promises = webTabs.map(tab => {
+        return chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: (className) => {
+            window.igniteDMAInjectedScriptActiveProfile = className;
+          },
+          args: [data.className]
+        }).then(() => {
+          return chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['checkTab.js']
+          });
+        });
+      });
+      return Promise.all(promises);
+    });
+
   });
 }
 

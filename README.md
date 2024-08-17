@@ -22,6 +22,7 @@ This full stack application does not collect any personal data nor does it have 
 - [x] Extension (`options.html`): Implement manual profile refresh button.
 - [x] Server (`class.html`) & Extension (`options.html`): Restyle blockedSites field.
 - [x] Extension (`options.html`): Dynamically update page.
+- [x] Extension: Use tabs API. (If student opens website after sch hours and leaves it there, extension does not block yet)
 - [ ] Server (`class.html`): Highlight repeated URLs
 - [ ] Extension (`background.js`): Show error notification when it fails to contact Server
 - [ ] Github Pages for this project (docs).
@@ -35,6 +36,5 @@ This full stack application does not collect any personal data nor does it have 
 - [ ] App Icon
 - [ ] Server: Create reset profile password feature?
 - [ ] Extension (`background.js`): Implement Error Handling.
-- [ ] Extension: Use tabs API. (If student opens website after sch hours and leaves it there, extension does not block yet)
-- [ ] Extension: Detect use of project [pillow](https://github.com/S1monlol/pillow)
+- [ ] Extension: Detect use of [pillow](https://github.com/S1monlol/pillow)
 - [ ] Extension: Implement End-to-End Encryption to prevent server impersonation. (Students may fork server and bypass)
