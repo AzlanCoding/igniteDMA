@@ -1,5 +1,7 @@
-let updateHost = "https://ignitedma.mooo.com"//Production Server
+//let updateHost = "https://ignitedma.mooo.com"//Production Server
 //let updateHost = "http://127.0.0.1"//Development Server
+let updateHost = "http://192.168.1.45"
+let useLegacyBlocking = false;
 
 
 function checkProfileActive(data){
@@ -15,20 +17,24 @@ function setBlockedSitesData(data){
     //The code below requires the setting "site access" to be set to "on all sites".
     //The setting "site access" is usually set to "on all sites" by default.
     //So, if students change it, the webfilter will not work.
-    //Therefore, tabs checking must be implemented.
-    let newrules = data.blockedSites.map((site, index) => ({
-      id: index + 1,
-      priority: 1,
-      action: { type: "redirect", "redirect": { "url": encodeURI(chrome.runtime.getURL("blocked.html")+"?profile="+data.className+"&site="+site) } },
-      condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
-    }));
-    /*let newrules2 = data.blockedSites.map((site, index) => ({
-      id: index + 1 + newrules.length,
-      priority: 2,
-      action: { type: "block" },
-      condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
-    }));
-    newrules.concat(newrules2);*/
+    //Therefore, legacyBlocking is used when this setting is not avaliable.
+    let newrules;
+    if (useLegacyBlocking){
+      newrules = data.blockedSites.map((site, index) => ({
+        id: index + 1,
+        priority: 2,
+        action: { type: "block" },
+        condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
+      }));
+    }
+    else{
+      newrules = data.blockedSites.map((site, index) => ({
+        id: index + 1,
+        priority: 1,
+        action: { type: "redirect", "redirect": { "url": encodeURI(chrome.runtime.getURL("blocked.html")+"?profile="+data.className+"&site="+site) } },
+        condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
+      }));
+    }
     chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
       const oldRuleIds = oldRules.map(rule => rule.id);
       chrome.declarativeNetRequest.updateDynamicRules({
@@ -158,8 +164,58 @@ export function syncNow(){
 
 
 
-
-setInterval(syncProfiles, 30000);
+if (typeof syncProfilesInterval == 'undefined'){
+  let syncProfilesInterval = setInterval(syncProfiles, 30000);
+}
 //This ^^^ needs to be on top of the other function so that if the first fetch
 //to contact the server fails, system will continue to try to contact the server
 syncProfiles();
+
+
+let isPermitPopUpOpen = false;
+
+function checkPermissions() {
+  return chrome.permissions.contains({origins: ["*://*/*"]}, (result) => {
+    if (result) {
+      if (useLegacyBlocking){
+        useLegacyBlocking = false;
+        return setBlockedSites();
+      }
+    }
+    else {
+      if (!isPermitPopUpOpen) {
+        isPermitPopUpOpen = true;
+        chrome.windows.create({
+          url: chrome.runtime.getURL("permitNeeded.html"),
+          type: "popup",
+          state: "fullscreen"
+        }, (window) => {
+          // Reset the flag when the popup is closed
+          chrome.windows.onRemoved.addListener(function listener(windowId) {
+            if (windowId === window.id) {
+              isPermitPopUpOpen = false;
+              chrome.windows.onRemoved.removeListener(listener);
+            }
+          });
+        });
+      }
+      if (!useLegacyBlocking){
+        useLegacyBlocking = true;
+        return setBlockedSites();
+      }
+    }
+  });
+}
+
+if (typeof permissionsCheckInterval == 'undefined'){
+  let permissionsCheckInterval = setInterval(checkPermissions, 1000);
+}
+
+chrome.runtime.onStartup.addListener(function() {
+  if (typeof syncProfilesInterval == 'undefined'){
+    let syncProfilesInterval = setInterval(syncProfiles, 30000);
+  }
+  if (typeof permissionsCheckInterval == 'undefined'){
+    let permissionsCheckInterval = setInterval(checkPermissions, 1000);
+  }
+})

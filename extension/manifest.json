@@ -5,7 +5,7 @@
   "author": "AzlanCoding",
   "description": "A Device Manager Application (DMA) for students under MOE",
   "homepage_url": "https://ignitedma.mooo.com/",
-  "permissions": ["storage","declarativeNetRequest"],
+  "permissions": ["storage", "declarativeNetRequest", "background"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

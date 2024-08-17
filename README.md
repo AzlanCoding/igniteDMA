@@ -10,7 +10,8 @@ This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 
 ## Important Notes
 The extension checks for updates from the profile every 30 seconds. You can force a refresh by pressing `Refresh Profile` in the options page.<br>
-**FOR ADMINISTRATORS:** When force installing the extension on students' devices, `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.
+**FOR ADMINISTRATORS:** When force installing the extension on students' devices, `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.<br>
+Even if you cannot enforce this setting, it will by default have access to all sites. A fullscreen popup will annoy students if they attempt to try to change the setting. The extension will also switch to `legacyWebBlocking` to stop students from visiting the blocked webpage should this popup fail to launch.
 ## Security
 This full stack application does not collect any personal data nor does it have any major control over the users' devices. Thus even if compromised, there is nothing to lose.
 
@@ -37,4 +38,3 @@ This full stack application does not collect any personal data nor does it have 
 - [ ] Extension: Use tabs API. (If student opens website after sch hours and leaves it there, extension does not block yet)
 - [ ] Extension: Detect use of project [pillow](https://github.com/S1monlol/pillow)
 - [ ] Extension: Implement End-to-End Encryption to prevent server impersonation. (Students may fork server and bypass)
-- [ ] Extension: Notify user if about to start profile
