@@ -38,3 +38,4 @@ This full stack application does not collect any personal data nor does it have 
 - [ ] Extension (`background.js`): Implement Error Handling.
 - [ ] Extension: Detect use of [pillow](https://github.com/S1monlol/pillow)
 - [ ] Extension: Implement End-to-End Encryption to prevent server impersonation. (Students may fork server and bypass)
+- [ ] Extension (`background.js`): Inject `checkTab.js` and call `updateDynamicRules()` only when extension/profile started and when `blockedSites` is updated. 

@@ -7,9 +7,7 @@ function checkBlocked(url,iframeObj){
   }
   return chrome.storage.sync.get(["blockedSites"]).then((result) => {
    for (var i in result.blockedSites) {
-      if (url.includes(result.blockedSites[i])){
-        alert("BLOCKING SITE!!!")
-        //let blockedPageUrl = "https://azlancoding.github.io/"
+      if (url.includes(result.blockedSites[i]) && !url.startsWith(chrome.runtime.getURL("blocked.html"))){
         let blockedPageUrl = (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(activeProfile)+"&site="+encodeURI(result.blockedSites[i])+"&fullURL="+encodeURI(url));
         console.log(blockedPageUrl);
         if (iframeObj != null){

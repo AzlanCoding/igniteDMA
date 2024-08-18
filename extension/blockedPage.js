@@ -2,6 +2,7 @@ function addInfo(){
   let url = new URL(window.location.href);
   let params = new URLSearchParams(url.search);
   if(params.get('profile') == null || params.get('site') == null){
+    document.title = "Nothing to see here! - Ignite DMA"
     document.getElementsByTagName("section")[0].classList.remove('is-danger');
     document.getElementsByTagName("section")[0].classList.add('is-success');
     document.getElementById('moreInfo').classList.add('is-hidden');
