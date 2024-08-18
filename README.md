@@ -9,8 +9,12 @@ The server is based off a past project which is based off a tutorial found [here
 This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 
 ## Important Notes
-The extension checks for updates from the profile every 30 seconds. You can force a refresh by pressing `Refresh Profile` in the options page.<br>
-**FOR ADMINISTRATORS:** When force installing the extension on students' devices, `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.<br>
+1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in the [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
+> An extension can have at least 5000 dynamic rules. This is exposed as the `MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES`.
+
+2. The extension checks for updates from the profile every 30 seconds. You can force a refresh by pressing `Refresh Profile` in the options page.
+
+3. **FOR ADMINISTRATORS:** When force installing the extension on students' devices, `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.<br>
 Even if you cannot enforce this setting, it will by default have access to all sites. A fullscreen popup will annoy students if they attempt to try to change the setting. The extension will also switch to `legacyWebBlocking` to stop students from visiting the blocked webpage should this popup fail to launch.
 ## Security
 This full stack application does not collect any personal data nor does it have any major control over the users' devices. Thus even if compromised, there is nothing to lose.
@@ -38,4 +42,6 @@ This full stack application does not collect any personal data nor does it have 
 - [ ] Extension (`background.js`): Implement Error Handling.
 - [ ] Extension: Detect use of [pillow](https://github.com/S1monlol/pillow)
 - [ ] Extension: Implement End-to-End Encryption to prevent server impersonation. (Students may fork server and bypass)
-- [ ] Extension (`background.js`): Inject `checkTab.js` and call `updateDynamicRules()` only when extension/profile started and when `blockedSites` is updated. 
+- [ ] Extension (`background.js`): Inject `checkTab.js` and call `updateDynamicRules()` only when extension/profile started and when `blockedSites` is updated.
+- [ ] Extension: Find a way around `declarativeNetRequest` 5000 rule limit
+- [ ] Extension (`permitNeeded.html`): Styling issues, subtitle looks weird.
