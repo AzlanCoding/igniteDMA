@@ -196,7 +196,7 @@ syncProfiles();
 let isPermitPopUpOpen = false;
 
 function checkPermissions() {
-  return chrome.permissions.contains({origins: ["*://*/*"]}, (result) => {
+  return chrome.permissions.contains({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["*://*/*"]}, (result) => {
     if (result) {
       if (useLegacyBlocking){
         useLegacyBlocking = false;
