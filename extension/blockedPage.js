@@ -18,10 +18,11 @@ function addInfo(){
     document.getElementById('refreshBtn').classList.remove("is-hidden");
     document.getElementById('refreshBtn').addEventListener('click', () => {
       document.getElementById('refreshBtn').classList.add("is-loading");
-      return chrome.storage.sync.get(["blockedSites"]).then((result) => {
-       for (var i in result.blockedSites) {
-          if (params.get('fullURL').includes(result.blockedSites[i])){
-            alert("The profile is still active and the site is still blocked.");
+      return chrome.runtime.sendMessage("getBlockedSites").then((result) => {
+        let blockedSites = Object.keys(result);
+        for (let i = 0; i < blockedSites.length; i++) {
+          if (params.get('fullURL').includes(blockedSites[i])){
+            alert("The profile is still active and the site is still being blocked by profile `"+result[blockedSites[i]]+"`");
             document.getElementById('refreshBtn').classList.remove("is-loading");
             return null;
           }

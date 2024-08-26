@@ -1,36 +1,72 @@
 let updateHost = "https://ignitedma.mooo.com"//Production Server
 //let updateHost = "http://127.0.0.1"//Development Server
+
 let useLegacyBlocking = false;
+let activeBlockedSites;//Will be an Map but currently null
+let activeProfiles;//Will be an Map but currently null
+//set as null so that areMapsEqual will return false
+//Forces enforceBlockedSites to run on startup.
+
+function areMapsEqual(map1, map2) {
+  if (map1 == null || map2 == null){
+    return false;
+  }
+  else if (map1.size !== map2.size) {
+    return false;
+  }
+  for (let [key, value] of map1) {
+    if (!map2.has(key) || map2.get(key) !== value) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 
 
 function checkProfileActive(data){
   let d = new Date();
+  if ((data.startHour == data.endHour) && (data.startMin == data.endMin) && (data.enforceDays.includes(d.getDay()))){
+    return true;
+  }
   let secondsNowSince2400 = ((d.getHours()*3600) + (d.getMinutes()*60));
   let secondsStartSince2400 = ((data.startHour*3600) + (data.startMin*60));
   let secondsEndSince2400 = ((data.endHour*3600) + (data.endMin*60));
   return ((data.enforceDays.includes(d.getDay())) && ((secondsStartSince2400 <= secondsNowSince2400) && (secondsEndSince2400 > secondsNowSince2400)))
 }
 
-function setBlockedSitesData(data){
-  return chrome.storage.sync.set({"blockedSites": data.blockedSites }).then(() => {
+function enforceBlockedSites(data){
+  console.log("Enforcing new blockedSites");
+  let blockedSites = Array.from(data.keys());
+  if (blockedSites.length == 0){
+    return chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
+      const oldRuleIds = oldRules.map(rule => rule.id);
+      chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: oldRuleIds,
+        addRules: []
+      });
+    });
+  }
+  else{
     //The code below requires the setting "site access" to be set to "on all sites".
     //The setting "site access" is usually set to "on all sites" by default.
     //So, if students change it, the webfilter will not work.
     //Therefore, legacyBlocking is used when this setting is not avaliable.
     let newrules;
     if (useLegacyBlocking){
-      newrules = data.blockedSites.map((site, index) => ({
+      newrules = blockedSites.map((site, index) => ({
         id: index + 1,
-        priority: 2,
+        priority: 1,
         action: { type: "block" },
         condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
       }));
     }
     else{
-      newrules = data.blockedSites.map((site, index) => ({
+      newrules = blockedSites.map((site, index) => ({
         id: index + 1,
         priority: 1,
-        action: { type: "redirect", "redirect": { "url": (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(data.className)+"&site="+encodeURI(site)) } },
+        action: { type: "redirect", "redirect": { "url": (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(data.get(site))+"&site="+encodeURI(site)) } },
         condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
       }));
     }
@@ -42,55 +78,64 @@ function setBlockedSitesData(data){
       });
     });
     //Check for any existing tabs open
-    return chrome.tabs.query({}).then(tabs => {
-      let webTabs = tabs.filter(tab => {
-        return tab.url.startsWith('http://') || tab.url.startsWith('https://');
-      });
-      let promises = webTabs.map(tab => {
+    return chrome.tabs.query({}, (tabs) => {
+      let promises = tabs.map(tab => {
         return chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: (className) => {
-            window.igniteDMAInjectedScriptActiveProfile = className;
+          target: { tabId: tab.id, allFrames: true},
+          func: (data) => {
+            console.log("Checking: "+window.location.href);
+            let blocked = false;
+            Object.keys(data).forEach((site,i) => {
+              if (!blocked && window.location.href.includes(site) && !window.location.href.startsWith(chrome.runtime.getURL("blocked.html"))){
+                let blockedPageUrl = (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(data[site])+"&site="+encodeURI(site)+"&fullURL="+encodeURI(window.location.href));
+                window.onbeforeunload = null;// TODO: Warn user first
+                window.location.href = blockedPageUrl;
+                blocked = true;
+              }
+            });
           },
-          args: [data.className]
-        }).then(() => {
-          return chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['checkTab.js']
-          });
+          args: [Object.fromEntries(data)]//It won't work if I send a map and idk why
+        }).catch((err) => {
+          if (err.message && err.message.includes("Cannot access")){
+            // NOTE: if no fileAccessScheme permission, `file://` URLs cannot scan
+            if (tab.url.startsWith("file://")){
+              chrome.tabs.remove(tab.id)
+            }
+            else{
+              console.log("Skipping inaccesible webpage\n"+err.message);
+            }
+          }
+          else{
+            console.error("Failed to inject script into tab");
+          }
         });
       });
       return Promise.all(promises);
     });
-
-  });
+  }
 }
 
 function setBlockedSites(){
+  console.log("checking blocked sites changes")
   return getClasses().then((classList) => {
-    let hasActiveProfile = false;
-    let promises = [];
+    let blockedSitesCache = new Map();
+    let activeProfilesCache = new Map();
     Object.entries(classList).forEach(([classId, data]) => {
       if (checkProfileActive(data)){
-        hasActiveProfile = true;
-        promises.push(setBlockedSitesData(data));
+        activeProfilesCache.set(classId, data.className);
+        data.blockedSites.forEach((site) => {blockedSitesCache.set(site, data.className)});
       }
       else{
         console.log("class "+data.className+" is not active.");
       }
     });
-    if (!hasActiveProfile){
-      //clear blockedSites
-      chrome.storage.sync.set({"blockedSites": []});
-      chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
-        const oldRuleIds = oldRules.map(rule => rule.id);
-        chrome.declarativeNetRequest.updateDynamicRules({
-          removeRuleIds: oldRuleIds,
-          addRules: []
-        });
-      });
+    if (!areMapsEqual(activeProfilesCache, activeProfiles)){
+      activeProfiles = activeProfilesCache;
     }
-    return Promise.all(promises);
+    if (!areMapsEqual(blockedSitesCache,activeBlockedSites)){
+      activeBlockedSites = blockedSitesCache;
+      return enforceBlockedSites(blockedSitesCache);
+    }
   });
 }
 
@@ -132,7 +177,7 @@ function checkUpdate(classId){
         result["class"+classId].lastUpdateFetch = new Date().getTime();
         return chrome.storage.sync.set(result);
       }
-    }).then(() => {setBlockedSites()});
+    });
   });
 }
 
@@ -152,12 +197,211 @@ function syncProfiles(){
   return getClasses().then((classList) => {
     let promises = Object.entries(classList).map(([classId, data]) => {
       return checkUpdate(classId);
-      //// TODO: Handle time colliding profiles/classes
-      ////       Not implemented yet: multiple profiles
+      //// NOTE: Profiles with the same time enforce will
+      ////       be active at the same time.
     });
     return Promise.all(promises);
   }).then(setBlockedSites);
 }
+
+function setBlockedSitesLoop(){
+  return setBlockedSites().then(() => {
+    let now = new Date();
+    let delay = (60 - now.getSeconds()) * 1000;
+    return setTimeout(setBlockedSitesLoop,delay)
+  });
+}
+
+
+
+
+let WindowTopRuleData = {
+  windowId: null,
+  url: null,
+  creationTime: null
+};
+let fileAccessSchemeExtPage = false;
+function fileAccessSchemeExtPageSwitch(){
+  fileAccessSchemeExtPage = true;
+}
+
+function blockingWindow(url, callback){
+  console.log("blockingWindow launched");
+  return chrome.windows.create({
+    url: url,
+    type: "popup",
+    state: "fullscreen"
+  }, callback);
+}
+function relaunchEnforceWindow(windowId) {
+  let timenow = new Date().getTime();
+  //Give 1 second for window to come into focus after creation
+  if (WindowTopRuleData.creationTime && WindowTopRuleData.creationTime + 1000 < timenow){
+    try{
+      return chrome.windows.get(WindowTopRuleData.windowId, (window) => {
+        if (window && !window.focused){
+          chrome.windows.remove(window.id);
+        }
+      })
+    }
+    catch(err){
+      //probably can't find the window
+      console.log(err);
+    }
+  }
+  else{
+    return setTimeout(() => {
+      relaunchEnforceWindow(windowId)
+    }, 1000);
+  }
+}
+function fulllscreenEnforceWindow(windowId){
+  if (windowId === WindowTopRuleData.windowId) {
+    return chrome.windows.update(windowId, { state: 'fullscreen'});
+  }
+}
+function relaunchClosedEnforceWindow(windowId) {
+  if (windowId === WindowTopRuleData.windowId) {
+    if (WindowTopRuleData.url == chrome.runtime.getURL("permitNeeded.html")){
+      chrome.permissions.contains({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
+        if (result) {
+          removeWindowTopRule();
+          if (useLegacyBlocking){
+            useLegacyBlocking = false;
+            return setBlockedSites();
+          }
+        }
+        else{
+          console.log("No permits, relaunching...")
+          updateWindowTopRule(WindowTopRuleData.url);
+        }
+      });
+    }
+    else if (WindowTopRuleData.url == chrome.runtime.getURL("fileAccessSchemeNeeded.html") || WindowTopRuleData.url == ("chrome://extensions/?id="+chrome.runtime.id)){
+      chrome.extension.isAllowedFileSchemeAccess((result) => {
+        if (!result){
+          if (fileAccessSchemeExtPage){
+            fileAccessSchemeExtPage = false;
+            updateWindowTopRule("chrome://extensions/?id="+chrome.runtime.id);
+          }
+          else{
+            updateWindowTopRule(chrome.runtime.getURL("fileAccessSchemeNeeded.html"));
+          }
+        }
+        else{
+          removeWindowTopRule();
+        }
+      });
+    }
+    /*else{
+      updateWindowTopRule(WindowTopRuleData.url);
+      //blockingWindow(WindowTopRuleData.url,WindowTopRuleData.callback);
+    }*/
+  }
+}
+
+function updateWindowTopRule(url){
+  console.log("updateCalled");
+  return blockingWindow(url, (window) => {
+    WindowTopRuleData = {
+      windowId: window.id,
+      url: url,
+      creationTime: new Date().getTime()
+    };
+  });
+}
+
+
+
+function setWindowTopRule(url){
+  console.log("windowSet")
+  if (url != WindowTopRuleData.url){
+    return blockingWindow(url, (window) => {
+      /*if (WindowTopRuleData.windowId != null){
+        removeWindowTopRule();
+      }*/
+      WindowTopRuleData = {
+        windowId: window.id,
+        url: url,
+        creationTime: new Date().getTime()
+      };
+      enforceWindowTopRule();
+    });
+  }
+  else{
+    console.log("rule already enforcing");
+  }
+}
+
+
+function enforceWindowTopRule(){
+  if (WindowTopRuleData.url == chrome.runtime.getURL("fileAccessSchemeNeeded.html") || WindowTopRuleData.url == "chrome://extensions/?id="+chrome.runtime.id){
+    chrome.windows.onFocusChanged.addListener(relaunchEnforceWindow);
+    chrome.windows.onBoundsChanged.addListener(fulllscreenEnforceWindow);
+    chrome.windows.onRemoved.addListener(relaunchClosedEnforceWindow);
+  }
+  else{
+    chrome.windows.onBoundsChanged.addListener(fulllscreenEnforceWindow);
+    chrome.windows.onRemoved.addListener(relaunchClosedEnforceWindow);
+  }
+}
+
+function removeWindowTopRule(){
+  //close window first?
+  if (WindowTopRuleData.url == chrome.runtime.getURL("fileAccessSchemeNeeded.html") || WindowTopRuleData.url == ("chrome://extensions/?id="+chrome.runtime.id)){
+    chrome.windows.onFocusChanged.removeListener(relaunchEnforceWindow);
+    chrome.windows.onBoundsChanged.removeListener(fulllscreenEnforceWindow);
+    chrome.windows.onRemoved.removeListener(relaunchClosedEnforceWindow);
+  }
+  else{
+    chrome.windows.onBoundsChanged.removeListener(fulllscreenEnforceWindow);
+    chrome.windows.onRemoved.removeListener(relaunchClosedEnforceWindow);
+  }
+  WindowTopRuleData = {
+    windowId: null,
+    url: null,
+    creationTime: null
+  };
+}
+
+function fileAccessSchemeCheck(){
+  return chrome.extension.isAllowedFileSchemeAccess((result) => {
+    if(result){
+      if (WindowTopRuleData.windowId != null){
+        removeWindowTopRule();
+      }
+    }
+    else if (WindowTopRuleData.windowId == null) {
+      console.log("launching fileAccessScheme")
+      setWindowTopRule(chrome.runtime.getURL("fileAccessSchemeNeeded.html"));
+    }
+  });
+}
+
+function checkPermissions() {
+  console.log(WindowTopRuleData.windowId);
+  return chrome.permissions.contains({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
+    if (result) {
+      if (useLegacyBlocking){
+        useLegacyBlocking = false;
+        return setBlockedSites();
+      }
+      // NOTE: IF YOU ARE GOING TO CHANGE ANYTHING HERE,
+      //       MAKE SURE TO LOOK AT relaunchClosedEnforceWindow()
+      fileAccessSchemeCheck();//Proceed with 2nd check
+    }
+    else {
+      if (WindowTopRuleData.windowId == null){
+        setWindowTopRule(chrome.runtime.getURL("permitNeeded.html"));
+      }
+      if (!useLegacyBlocking){
+        useLegacyBlocking = true;
+        return setBlockedSites();
+      }
+    }
+  });
+}
+
 
 export function addClass(className){
   return getUpdates(className);
@@ -175,68 +419,40 @@ export function syncNow(){
   return syncProfiles();
 }
 
-
-/*chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message === 'syncProfiles') {
-    syncProfiles().then(() => {sendResponse()});
-    return true;
-  }
-});*/
-
-
-
-if (typeof syncProfilesInterval == 'undefined'){
-  let syncProfilesInterval = setInterval(syncProfiles, 30000);
-}
-//This ^^^ needs to be on top of the other function so that if the first fetch
-//to contact the server fails, system will continue to try to contact the server
-syncProfiles();
-
-
-let isPermitPopUpOpen = false;
-
-function checkPermissions() {
-  return chrome.permissions.contains({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["*://*/*"]}, (result) => {
-    if (result) {
-      if (useLegacyBlocking){
-        useLegacyBlocking = false;
-        return setBlockedSites();
-      }
+if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ == '__main__':` in python
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request === 'getBlockedSites') {
+      sendResponse(Object.fromEntries(activeBlockedSites));
     }
-    else {
-      if (!isPermitPopUpOpen) {
-        isPermitPopUpOpen = true;
-        chrome.windows.create({
-          url: chrome.runtime.getURL("permitNeeded.html"),
-          type: "popup",
-          state: "fullscreen"
-        }, (window) => {
-          // Reset the flag when the popup is closed
-          chrome.windows.onRemoved.addListener(function listener(windowId) {
-            if (windowId === window.id) {
-              isPermitPopUpOpen = false;
-              chrome.windows.onRemoved.removeListener(listener);
-            }
-          });
-        });
-      }
-      if (!useLegacyBlocking){
-        useLegacyBlocking = true;
-        return setBlockedSites();
-      }
+    if (request === 'fileAccessSchemeExtPageSwitch') {
+      fileAccessSchemeExtPageSwitch();
+      sendResponse(true);
     }
   });
-}
 
-if (typeof permissionsCheckInterval == 'undefined'){
-  let permissionsCheckInterval = setInterval(checkPermissions, 1000);
-}
+  chrome.runtime.onStartup.addListener(function() {
+    if (typeof syncProfilesInterval == 'undefined'){
+      syncProfiles();
+      let syncProfilesInterval = setInterval(syncProfiles, 30000);
+    }
+    if (typeof syncProfilesInterval == 'undefined'){
+      let setBlockedSitesInterval = setBlockedSitesLoop();
+    }
+    if (typeof permissionsCheckInterval == 'undefined'){
+      checkPermissions();
+      let permissionsCheckInterval = setInterval(checkPermissions, 1000);
+    }
+  });
 
-chrome.runtime.onStartup.addListener(function() {
   if (typeof syncProfilesInterval == 'undefined'){
+    syncProfiles();
     let syncProfilesInterval = setInterval(syncProfiles, 30000);
   }
+  if (typeof syncProfilesInterval == 'undefined'){
+    let setBlockedSitesInterval = setBlockedSitesLoop();
+  }
   if (typeof permissionsCheckInterval == 'undefined'){
+    checkPermissions();
     let permissionsCheckInterval = setInterval(checkPermissions, 1000);
   }
-})
+}

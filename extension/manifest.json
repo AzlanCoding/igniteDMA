@@ -12,7 +12,7 @@
   },
   "host_permissions": [
     "https://ignitedma.mooo.com/*",
-    "*://*/*"
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html"
@@ -20,7 +20,7 @@
   "web_accessible_resources": [
     {
       "resources": ["blocked.html"],
-      "matches": ["*://*/*"]
+      "matches": ["<all_urls>"]
     }
   ],
   "options_page":"options.html"

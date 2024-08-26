@@ -27,6 +27,7 @@ This full stack application does not collect any personal data nor does it have 
 - [x] Server (`class.html`) & Extension (`options.html`): Restyle blockedSites field.
 - [x] Extension (`options.html`): Dynamically update page.
 - [x] Extension: Use tabs API. (If student opens website after sch hours and leaves it there, extension does not block yet)
+- [x] Extension (`background.js`): Inject script to check tab and call `updateDynamicRules()` only when extension/profile started and when `blockedSites` is updated.
 - [ ] Server (`class.html`): Highlight repeated URLs
 - [ ] Extension (`background.js`): Show error notification when it fails to contact Server
 - [ ] Github Pages for this project (docs).
@@ -41,7 +42,6 @@ This full stack application does not collect any personal data nor does it have 
 - [ ] Server: Create reset profile password feature?
 - [ ] Extension (`background.js`): Implement Error Handling.
 - [ ] Extension: Detect use of [pillow](https://github.com/S1monlol/pillow)
-- [ ] Extension: Implement End-to-End Encryption to prevent server impersonation. (Students may fork server and bypass)
-- [ ] Extension (`background.js`): Inject `checkTab.js` and call `updateDynamicRules()` only when extension/profile started and when `blockedSites` is updated.
+- [ ] Extension: Implement End-to-End Encryption to prevent server impersonation. (Students might fork server and bypass through DNS hijack)
 - [ ] Extension: Find a way around `declarativeNetRequest` 5000 rule limit
-- [ ] Extension (`permitNeeded.html`): Styling issues, subtitle looks weird.
+- [ ] Extension: Support for multiple profiles
