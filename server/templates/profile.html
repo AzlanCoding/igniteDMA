@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+{% block head %}
+  <title>Ignite DMA Manager – Profile</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    .profileTop{
+      display: flex;
+    }
+    .profileInfo{
+      width: 90%;
+      height: 75%;
+      margin-bottom: 10%
+    }
+    .profilePlaceholder{
+    }
+    .profilePlaceholder div{
+      opacity: 1;
+      filter: blur(0.75em);
+    }
+    .profilePlaceholder .addIcon{
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      user-select: none;
+      align-content: center;
+      opacity: 1 !important;
+      filter: none !important;
+      text-align: center !important;
+      transform: translate(calc(-1*var(--bulma-box-padding)), calc(-1*var(--bulma-box-padding)));
+    }
+    .editButtonContain{
+      width: 10%;
+    }
+    .profileBottom{
+      width: 100%;
+      height: 25%
+    }
+    .editButton{
+      display: block;
+      border-radius: 50%;
+      padding: 0.25em;
+      background: transparent;
+      transition: background 0.5s ease-in-out;
+    }
+    .editButton:hover{
+      background: rgba(100,100,100,0.5);
+      transition: background 0.5s ease-in-out;
+    }
+    .status{
+      pointer-events: none;
+    }
+    .profileEntry{
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      user-select: none;
+    }
+    .profileContainer{
+      overflow: auto;
+      user-select: none;
+      /*text-align: left;*/
+    }
+    .profileBox{
+      width: 25%;
+      position: relative;
+      min-width: 200px;
+      /*min-height: 150px;*/
+      display: inline-block;
+      text-align: left;
+      margin: 0.5em;
+      cursor: pointer;
+      transition: box-shadow 0.5s ease-in-out;
+      box-shadow: 0 2px 3px rgba(10,10,10,.2), 0 0 0 1px rgba(10,10,10,.2);
+    }
+    .profileBox:hover{
+      box-shadow: 10px 15px rgba(10,10,10,.2);
+      transition: box-shadow 0.5s ease-in-out;
+    }
+    .editButton2{
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #profileModal .modal-card{
+      width: 90%;
+      height: 90%;
+    }
+    /*#enrollModal{
+      width: width: var(--bulma-modal-content-width);
+      height: unset;
+    }*/
+    .modal-card-head{
+      height: 10%;
+    }
+    .modal-card-body{
+      height: 80%;
+      overscroll-behavior: none;
+    }
+    .modal-card-foot{
+      height: 10%;
+      justify-content: right;
+    }
+    .modal-card-foot .buttons{
+      margin-bottom: unset;
+    }
+    #notifications{
+      position: fixed;
+      top: 10%;
+      left: 10%;
+      right: 10%;
+      z-index: 1;
+    }
+    .hidden{
+      display: none !important;
+    }
+
+    .table-container th {
+      white-space: nowrap;
+    }
+    .table-container td {
+      width: 100%;
+    }
+    #profileTimeEdit label {
+      display: inline;
+      padding-right: 1em;
+      vertical-align: middle;
+    }
+    .timeInput{
+      width: unset;
+      margin-bottom: 0.5em;
+    }
+    .checkboxes input{
+      margin-right: 0.25em;
+      margin-left: 0.5em;
+    }
+    input{
+      text-align: center;
+    }
+
+
+    .blocked-site-input {
+      display: block;
+      margin-bottom: 5px;
+      width: unset;
+    }
+    .blocked-site-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .remove-btn {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 0;
+      cursor: pointer;
+      background-color: transparent;
+      color: red;
+      border: none;
+      padding: 2px 5px;
+      transform: rotate(45deg);
+    }
+    .blocked-site-wrapper:hover .remove-btn {
+      display: inline;
+    }
+    #firstBox {
+      width: 100%;
+    }
+    #notifi{
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+    }
+    .clear{
+      opacity: 0;
+      transition: opacity 1.5s;
+    }
+    .blocked-site-data {
+      width: unset;
+    }
+
+
+    .loadSign{
+        height:100%;
+        border-color: transparent;
+        background-color: transparent;
+        pointer-events: none;
+      }
+
+      .loadSign::after{
+        border-color: transparent transparent var(--bulma-text-strong) var(--bulma-text-strong) !important;
+        -webkit-animation: spinAround .5s infinite linear;
+        animation: spinAround .5s infinite linear;
+        border: 5px solid #dbdbdb;
+        border-radius: 100%;
+        border-right-color: transparent;
+        border-top-color: transparent;
+        content: "";
+        display: block;
+        height: 5em;
+        position: relative;
+        width: 5em;
+      }
+
+      [type="time"]::-webkit-calendar-picker-indicator {
+        background-image: url("/assets/schedule_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24.png");
+      }/* NOTE: This does not work on firefox */
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div id="notifications">
+  </div>
+  <h1 class="title">Good Afternoon!</h1>
+  <h2 class="subtitle">Welcome to Ignite DMA Manager</h2>
+  <div class="box">
+    <p class="title is-size-4">Enrollment Information</p>
+    <div class="table-container block is-fullwidth">
+      <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
+        <tbody>
+          <tr class="is-selected title is-4">
+            <th>School</th>
+            <td>
+              <div id="enrollNameView">
+                <p id="enrollName" style="display: inline;"></p>
+                <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="enrollNameToggle(true)">edit</button>
+              </div>
+              <div id="enrollNameEdit" style="display: inline-block;" class="hidden">
+                <div class="field is-grouped">
+                  <p class="control is-expanded">
+                    <input id="enrollNameEditField" class="input" style="min-width: 10em;" type="text" onkeypress="enrollNameKeypress(event)" oninput="enrollNameKeypress(event)" placeholder="Enter School Name">
+                  </p>
+                  <p class="control">
+                    <button id="enrollNameSubmitBtn" class="button is-success" onclick="enrollNameSubmit()" disabled>Save</button>
+                    <button class="button" onclick="enrollNameToggle(false)">Cancel</button>
+                    <!-- BUG: Buttons overflow on mobile -->
+                  </p>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <th>Enrollment Code</th>
+            <td id="enrollCode"></td>
+          </tr>
+          <tr>
+            <th>Last Updated</th>
+            <td id="enrollLastUpdated"></td>
+          </tr>
+          <tr>
+            <th>Removal PIN</th>
+            <td>
+              <p id="enrollPin" style="display: inline;vertical-align: bottom;">••••••••</p>
+              <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="enrollPinToggle(this)">visibility</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="buttons" style="justify-content: right">
+      <button class="button is-warning" onclick="enrollEdit()">Change Removal Pin</button>
+      <!--button class="button is-info" onclick="notifi('is-info', 'Sorry!', 'This feature is not ready yet.')">Print Information</button-->
+    </div>
+
+
+    <p class="title is-size-4">Profiles</p>
+    <div class="box block has-background-dark profileContainer">
+
+      <div class="box profileBox" data-profile="jijsij" onclick="profileInfo(this)">
+        <div class="profileTop">
+          <div class="profileInfo">
+            <p class="profileEntry title is-size-5">Baseline Profile</p>
+            <p class="profileEntry subtitle is-size-6">Everyday<br>24/7</p>
+          </div>
+          <div class="editButtonContain">
+            <button class="editButton"  onclick="profileEdit(this)"><span class="material-symbols-outlined">edit</span></button>
+          </div>
+        </div>
+        <div class="profileBottom">
+          <button class="button is-success status">Active</button>
+          <!--button class="button is-danger is-inverted status">Disabled</button-->
+          <!--button class="button is-warning status">Inactive</button-->
+        </div>
+      </div>
+
+      <div class="box profileBox profilePlaceholder">
+        <div class="addIcon">
+          <strong><span class="material-symbols-outlined" style="font-size: 36px;">add</span></strong>
+          <p class="subtitle"><strong>Click here to add a new profile</strong></p>
+        </div>
+        <div class="profileTop">
+          <div class="profileInfo">
+            <p class="profileEntry title is-size-5">Example Profile</p>
+            <p class="profileEntry subtitle is-size-6">Weekdays<br>08:00-14:30</p>
+          </div>
+          <div class="editButtonContain">
+            <button class="editButton"><span class="material-symbols-outlined">edit</span></button>
+          </div>
+        </div>
+        <div class="profileBottom">
+          <button class="button is-success status">Active</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div id="profileModal" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title"></p>
+        <button class="delete" aria-label="close" onclick="closeModalCard(this)"></button>
+      </header>
+      <section class="modal-card-body">
+        <button class="button loadSign" id="loading"></button>
+        <div id="profileViewer" class="hidden">
+          <p class="title is-size-4">General Information</p>
+          <div class="table-container" id="profile">
+            <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
+              <tbody>
+                <tr class="is-selected title is-4">
+                  <th>Profile Name</th>
+                  <td id="profileName"></td>
+                </tr>
+                <tr>
+                  <th>Day Range</th>
+                  <td id="profileDay"></td>
+                </tr>
+                <tr>
+                  <th>Time Range</th>
+                  <td id="profileTime"></td>
+                </tr>
+                <tr>
+                  <th>Last Updated</th>
+                  <td id="profileLastUpdated"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="title is-size-4">Blocked Sites</p>
+          <div class="box has-background-dark">
+            <p></p>
+          </div>
+        </div>
+        <form id="profileEditor" class="hidden">
+          <p class="title is-size-4">General Information</p>
+          <div class="table-container" id="editProfile" method="POST" action="/profile" onsubmit="checkTime()">
+            <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
+              <tbody>
+                <tr class="is-selected title is-4">
+                  <th>Profile Name</th>
+                  <td><input class="input" name="profileNameEdit" id="profileNameEdit" type="text" maxLength="15" onkeypress="preventFormSubmit(event)" required></input></td>
+                </tr>
+                <tr>
+                  <th>Day Range</th>
+                  <td id="profileDayEdit" style="min-width: 200px">
+                    <div class="checkboxes" style="display:block">
+                      <label class="checkbox"><input id="editSUN" name="editSUN" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Sunday</label>
+                      <label class="checkbox"><input id="editMON" name="editMON" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Monday</label>
+                      <label class="checkbox"><input id="editWED" name="editWED" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Wednesday</label>
+                      <label class="checkbox"><input id="editTUE" name="editTUE" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Tuesday</label>
+                      <label class="checkbox"><input id="editTHU" name="editTHU" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Thursday</label>
+                      <label class="checkbox"><input id="editFRI" name="editFRI" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Friday</label>
+                      <label class="checkbox"><input id="editSAT" name="editSAT" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Saturday</label>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Time Range</th>
+                  <td id="profileTimeEdit">
+                    <label class="label">Start Time:</label>
+                    <input class="input timeInput" id="editTimeStart" name="editTimeStart" type="time" onkeypress="preventFormSubmit(event)" required></input>
+                    <br>
+                    <label class="label">End Time:</label>
+                    <input class="input timeInput" id="editTimeEnd" name="editTimeEnd" type="time" onkeypress="preventFormSubmit(event)" required></input>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="title is-size-4">Blocked Sites</p>
+          <div class="box has-background-dark blocked-sites-container">
+            <div class="field has-addons">
+              <div class="control" style="width: 100%;">
+                <input type="text" class="blocked-site-input input" placeholder="Enter more sites here" onkeypress="handleKeyPress(event)" oninput="validateInputEvent(event)" id="firstBox"></input>
+              </div>
+              <div class="control">
+                <button class="button is-info" onclick="forceNewInput();event.preventDefault()">Add</button>
+              </div>
+            </div>
+          </div>
+          <textarea type="text" class="is-hidden" id="blockedSitesList" name="blockedSitesList" hidden></textarea>
+          <!--button class="button is-success" id="saveProfile" type="submit" onclick="updateBlockedSitesList();if(document.getElementById('editProfile').reportValidity()){this.classList.add('is-loading');}">Save Changes</button>
+          <button class="button is-danger" id="uneditProfile" onclick="if(confirm('Discard changes?')){renderUI(false);}event.preventDefault();">Cancel</button-->
+        </form>
+      </section>
+      <footer class="modal-card-foot">
+        <div id="profileViewerButtons" class="buttons hidden">
+          <button class="button" onclick="closeModalCard(this.parentElement)">Close</button>
+          <button class="button is-warning" onclick="renderModal('',true)">Edit</button>
+        </div>
+        <div id="profileEditorButtons" class="buttons hidden">
+          <button class="button" onclick="renderModal('',false)">Cancel</button>
+          <button class="button is-success">Save changes</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <div class="modal" id="enrollModal">
+    <div class="modal-background"></div>
+    <form class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Change Removal Pin</p>
+        <button class="delete" aria-label="close" onclick="closeModalFormCard(this)"></button>
+      </header>
+      <section class="modal-card-body" style="text-align: left;">
+        <div class="field">
+          <label class="label">New PIN</label>
+          <div class="control">
+            <input class="input" onkeypress="enrollPinCheck(event)" name="PIN" type="password" style="text-align: left;">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Confirm new PIN</label>
+          <div class="control">
+            <input class="input" onkeypress="enrollPinCheck(event)" name="PINConfirm" type="password" style="text-align: left;">
+          </div>
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <div class="buttons">
+          <button class="button" onclick="closeModalFormCard(this.parentElement)">Cancel</button>
+          <button class="button is-success" disabled>Update PIN</button>
+        </div>
+      </footer>
+    </form>
+  </div>
+  <div id="userData" style="display: none">
+    {
+      "enrollName": "Test School",
+      "enrollCode": "ZKWCWQLF",
+      "lastUpdated": 1724981643693
+    }
+  </div>
+  <div id="enrollPinData" style="display: none">
+    {
+      "removalPin": "superSecretPassword"
+    }
+  </div>
+  <script>
+    function notifi(status, title, text){
+      /*let notifi = $("<div>", {class: "notification "+status});
+      notifi.text(data);
+      notifi.append($("<button>", {class: "delete", onclick: "closeNotifi(this)"}));*/
+      let notifi = $("<article>", {class: "message "+status});
+      let header = $("<div>", {class: "message-header"});
+      header.text(title);
+      header.append($("<button>", {class: "delete", onclick: "closeNotifi(this)"}));
+      let body = $("<div>", {class: "message-body"});
+      body.text(text);
+      notifi.append(header,body);
+      $('#notifications').append(notifi);
+    }
+    function enrollPinCheck(event){
+      if (event.key === 'Enter') {
+          event.preventDefault();
+      }
+      console.log($('input[name="PIN"]').val());
+    }
+    let enrollPinTimeout;
+    function enrollPinToggle(elm){
+      clearTimeout(enrollPinTimeout);
+      if ($(elm).html() == "visibility"){
+        let data = JSON.parse($('#enrollPinData').html());
+        $("#enrollPin").html(data["removalPin"]);
+        $(elm).html("visibility_off");
+        enrollPinTimeout = setTimeout(() => {
+          enrollPinClose(elm);
+        }, 3000);
+      }
+      else{
+        $("#enrollPin").html("••••••••");
+        $(elm).html("visibility");
+      }
+    }
+    function enrollPinClose(elm){
+      enrollPinToggle(elm);
+    }
+    function enrollNameToggle(state){
+      if (state){
+        $("#enrollNameEdit").parent().css('min-width', "400px");
+        $("#enrollNameView").addClass('hidden');
+        $("#enrollNameEdit").removeClass('hidden');
+      }
+      else {
+        $("#enrollNameEdit").parent().css('min-width', "unset");
+        $("#enrollNameEdit").addClass('hidden');
+        $("#enrollNameView").removeClass('hidden');
+      }
+    }
+    function enrollNameKeypress(event){
+      if($('#enrollNameEditField').val() != $('#enrollName').html()){
+        $('#enrollNameSubmitBtn').prop("disabled",false);
+        if (event.key === 'Enter') {
+          enrollNameSubmit();
+        }
+      }
+      else{
+        $('#enrollNameSubmitBtn').prop("disabled",true);
+      }
+    }
+    function enrollNameSubmit(){
+      console.log('submit: '+$('#enrollNameEditField').val());
+    }
+    function enrollEdit(){
+      $('#enrollModal').addClass('is-active');
+    }
+
+    /*function closeModal(elm){
+      $(elm).parent().removeClass("is-active");
+    }*/
+    function closeModalCard(elm){
+      $(elm).parent().parent().parent().removeClass("is-active");
+    }
+    function closeModalFormCard(elm){
+      event.preventDefault();
+      $(elm).parent().parent().parent().removeClass("is-active");
+    }
+    function closeNotifi(elm){
+      $(elm).parent().parent().animate({opacity: 0, height: 0, margin: 0, padding: 0}, 1000, () => {
+        $(elm).parent().parent().remove();
+      });
+    }
+
+    function profileEdit(elm){
+      //console.log('edit');
+      //console.log($(elm).parent().parent().parent().attr("data-profile"));
+      renderModal($(elm).parent().parent().parent().attr("data-profile"), true);
+      $('#profileModal').addClass('is-active');
+
+    }
+    function profileInfo(elm){
+      if (!$('#profileModal').hasClass('is-active')){
+        //console.log('info');
+        //console.log($(elm).attr("data-profile"));
+        renderModal($(elm).attr("data-profile"),false);
+        $('#profileModal').addClass('is-active');
+      }
+    }
+    function renderModal(profileCode, edit){
+      $('#profileModal #loading').removeClass('hidden');
+      $('#profileModal #profileViewerButtons').addClass('hidden');
+      $('#profileModal #profileViewer').addClass('hidden');
+      $('#profileModal #profileEditor').addClass('hidden');
+      $('#profileModal #profileEditorButtons').addClass('hidden');
+      if (edit){
+        $('#profileModal .modal-card-title').html("Edit Profile");
+        setTimeout(()=> {
+          $('#profileModal #loading').addClass('hidden');
+          $('#profileModal #profileEditor').removeClass('hidden');
+          $('#profileModal #profileEditorButtons').removeClass('hidden');
+        }, 1000);
+      }
+      else{
+        $('#profileModal .modal-card-title').html("Profile Information");
+        setTimeout(() => {
+          $('#profileModal #loading').addClass('hidden');
+          $('#profileModal #profileViewer').removeClass('hidden');
+          $('#profileModal #profileViewerButtons').removeClass('hidden');
+        },1000);
+      }
+      console.log(profileCode, edit);
+    }
+    function renderUI(){
+      let data = JSON.parse($('#userData').html());
+      $('#enrollName').html(data.enrollName);
+      $('#enrollNameEditField').val(data.enrollName);
+      $('#enrollCode').html(data.enrollCode);
+      $('#enrollLastUpdated').html(new Date(data.lastUpdated).toLocaleString());
+
+    }
+    renderUI();
+  </script>
+{% endblock %}

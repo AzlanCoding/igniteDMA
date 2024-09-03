@@ -13,11 +13,15 @@ main = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
+@main.route('/profile2')
+def profile2():
+    return render_template('profile.html')
+
 @main.route('/profile')
 @login_required
 def profile():
     classId = current_user.classId
-    with open("./server/class/"+classId+".json") as f:
+    with open("./server/storage/class/"+classId+".json") as f:
       data = json.load(f)
       f.close()
     data["classId"] = classId.upper()
@@ -48,7 +52,7 @@ def profile_post():
         "lastUpdated": int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
     }
 
-    with open("./server/class/"+classId+'.json', 'w', encoding='utf8') as outfile:
+    with open("./server/storage/class/"+classId+'.json', 'w', encoding='utf8') as outfile:
       outfile.write(json.dumps(data,indent=4))
       outfile.close()
 
@@ -66,13 +70,13 @@ def send_file(path):
 
 @main.route('/api/v0/getClass/<path:path>')
 def getClass(path):
-    return send_from_directory('class', path+".json")
+    return send_from_directory('storage/class', path+".json")
 
 @main.route('/api/v0/findClass/<path:path>')
 def findClass(path):
     classId = path
     try:
-        with open("./server/class/"+classId+".json") as f:
+        with open("./server/storage/class/"+classId+".json") as f:
           data = json.load(f)
           f.close()
         return jsonify({"lastUpdated": data["lastUpdated"],"forceUpdateNow": False})
@@ -95,90 +99,3 @@ def verifyPin():
 @main.route('/api/v0/masterPin', methods=['GET'])
 def nothing():
     abort(404)
-
-
-#code from past project
-'''class Encryptor:
-    def save(dictionary,file):
-        """
-        Saves a dictionary of data as an encrypted JSON file.
-        It can also be used overwrite existing JSON files.
-        Returns the file variable
-        """
-        # Serializing json
-        data = json.dumps(dictionary, indent=4)
-        #Converting to Encrypted
-        encrypted = fernet.encrypt(bytes(data,'UTF-8'))
-        #Open File
-        with open(file, 'wb') as encrypted_file:
-            #Write to file
-            encrypted_file.write(encrypted)
-            #close file
-            encrypted_file.close()
-        return file
-
-    def read(file):
-        """
-        Opens an encrypted JSON file and reads it.
-        Returns a dictionary from the JSON
-        """
-        #Open file
-        with open(file, 'rb') as enc_file:
-            #Read file
-            encrypted = enc_file.read()
-            #Close file
-            enc_file.close()
-        #Convert string to a dictionary and return
-        return json.loads(fernet.decrypt(encrypted))
-
-    def getPoints(file):
-        return Encryptor.read(file)["Points"]
-
-    def getName(file):
-        return Encryptor.read(file)["name"]
-
-@main.route('/scan')
-def a():
-    return render_template('UPC_AScanner.html')
-
-@main.route('/card/<path:path>')
-def sendPoints(path):
-    try:
-        cardPath = './cards/'+path+".json"
-        name = Encryptor.getName(cardPath)
-        points = Encryptor.getPoints(cardPath)
-        return render_template('points.html',name=name, points=points)
-    except FileNotFoundError:
-        return "Card not found!"
-
-@main.route('/getcard/<path:path>')
-@login_required
-def sendCard(path):
-    try:
-        return Encryptor.read('./cards/'+path+".json")
-    except FileNotFoundError:
-        return "Card not found!"
-
-@main.route('/EditCard/<path:path>/addCard/', methods=['POST'])
-@login_required
-def updateCard(path):
-    print(path)
-    points = request.form.get('points')
-    flash('Added '+str(points)+' points to card')
-    return redirect('/EditCard/'+path)
-
-@main.route('/EditCard/<path:path>')
-@login_required
-def sendEditPage(path):
-    try:
-        cardPath = './cards/'+path+".json"
-        name = Encryptor.getName(cardPath)
-        points = Encryptor.getPoints(cardPath)
-        return render_template('cardEdit.html',name=name, points=points)
-    except FileNotFoundError:
-        return "Card not found!"
-@main.route('/slider')
-@login_required
-def test():
-    return render_template('Slider.html')
-'''

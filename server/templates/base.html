@@ -1,123 +1,124 @@
 <!DOCTYPE html>
-<html>
-
-<head>
+<html data-theme="dark">
+  <!-- TODO: Make the website look good in both light and dark mode -->
+  <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-    <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-    <title>Ignite DMA Manager</title>
+    <!--script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    {% block head %}
+    {% endblock %}
     <style>
-        html{
-          overflow-y : auto;
-	}
+      :root {
+        --bulma-primary-h: 193deg;
+        --bulma-primary-s: 92%;
+        --bulma-primary-l: 36%;
+        --bulma-link-h: 195deg;
+        --bulma-link-s: 89%;
+        --bulma-link-l: 28%;
+        --bulma-info-h: 191deg;
+        --bulma-info-s: 95%;
+        --bulma-info-l: 43%;
+        --bulma-success-h: 132deg;
+        --bulma-success-s: 34%;
+        --bulma-success-l: 56%;
+        --bulma-warning-h: 50deg;
+        --bulma-warning-s: 94%;
+        --bulma-warning-l: 49%;
+        --bulma-danger-h: 347deg;
+        --bulma-danger-s: 86%;
+        --bulma-danger-l: 56%;
+        --bulma-scheme-h: 193;
+        --bulma-scheme-s: 92%;
+        --bulma-light-l: 36%;
+      }
+      .modal {/*Prevent accidental click to 'logout' when double click close button*/
+        --bulma-modal-close-right: 2.5em;
+        --bulma-modal-close-top: 2.5em;
+      }/* TODO: Transitions for modal */
+
+      html {
+        /* Gradeient generated using cssgradient.io */
+        background: rgb(46,51,61);
+        background: linear-gradient(165deg, rgba(46,51,61,1) 25%, rgba(8,103,136,1) 75%, rgba(7,139,175,1) 100%);
+        background-attachment: fixed;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      nav{
+        user-select: none;
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(90, 90, 90);
+        border-radius: 1em;
+      }
+
     </style>
-</head>
-
-<body>
-    <section class="hero is-primary is-fullheight">
-
-        <div class="hero-head">
-            <!nav class="navbar">
-                <nav class="navbar" role="navigation" aria-label="main navigation">
-    <div class="navbar-brand">
-        <a class="navbar-item" href="{{ url_for('main.index') }}">
-            <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
-        </a>
-
-        <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-        </a>
-    </div>
-
-    <div id="navbarBasicExample" class="navbar-menu">
-        <div class="navbar-start">
-            <a class="navbar-item" href="{{ url_for('main.index') }}">
-                Home
+  </head>
+  <body>
+    <section class="hero is-fullheight">
+      <div class="hero-head">
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+          <div class="navbar-brand">
+            <!--a class="navbar-item" href="{{ url_for('main.index') }}">
+              <img src="/assets/logo.png" width="112" height="28">
+            </a--><!-- TODO: Add Logo -->
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
             </a>
-            <a class="navbar-item" href="https://github.com/AzlanCoding/igniteDMA">
-                About
-            </a>
-      {% if not current_user.is_authenticated %}
-            <a class="navbar-item" href="./signup">
-                New Profile
-            </a>
-      {% endif %}
-	    {% if current_user.is_authenticated %}
-	    <a class="navbar-item" href="{{ url_for('main.profile') }}">
-                Profile
-            </a>
-	    {% endif %}
-            <!div class="navbar-item has-dropdown is-hoverable">
-                <!a class="navbar-link">
-                    <!More>
-                <!/a>
-
-                <!div class="navbar-dropdown">
-                    <!a class="navbar-item">
-                        <!About>
-                    <!/a>
-                    <!a class="navbar-item">
-                        <!Jobs>
-                    <!/a>
-                    <!a class="navbar-item">
-                        <!Contact>
-                    <!/a>
-                    <!hr class="navbar-divider">
-                    <!a class="navbar-item">
-                        <!Report an issue>
-                    <!/a>
-                <!/div>
-            <!/div>
-        </div>
-
-        <div class="navbar-end">
-            <div class="navbar-item">
+          </div>
+          <div class="navbar-menu">
+            <div class="navbar-start">
+              <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+              <a class="navbar-item" href="https://github.com/AzlanCoding/igniteDMA">About</a>
+              {% if not current_user.is_authenticated %}
+                <a class="navbar-item" href="./signup">Sign Up</a>
+              {% endif %}
+              {% if current_user.is_authenticated %}
+              <a class="navbar-item" href="{{ url_for('main.profile') }}">Profile</a>
+              {% endif %}
+            </div>
+            <div class="navbar-end">
+              <div class="navbar-item">
                 <div class="buttons">
-		    {% if not current_user.is_authenticated %}
-                    <a class="button is-primary" href="{{ url_for('auth.signup') }}">
-                        <strong>Sign up</strong>
-                    </a>
-                    <a class="button is-light" href="{{ url_for('auth.login') }}">
-                        Log in
-                    </a>
-		    {% endif %}
-		    {% if current_user.is_authenticated %}
-                    <a class="button is-light" href="{{ url_for('auth.logout') }}">
-                        Logout
-                    </a>
-		    {% endif %}
+                  {% if not current_user.is_authenticated %}
+                    <a class="button is-primary is-inverted is-outlined" href="{{ url_for('auth.login') }}">Log in</a>
+                  {% endif %}
+                  {% if current_user.is_authenticated %}
+                    <a class="button is-primary is-inverted is-outlined" href="{{ url_for('auth.logout') }}">Logout</a>
+                  {% endif %}
                 </div>
+              </div>
             </div>
+          </div>
+        </nav>
+      </div>
+      <div class="hero-body">
+        <div class="container has-text-centered">
+          {% block content %}
+          {% endblock %}
         </div>
-    </div>
-</nav>
-            <!/nav>
-        </div>
-
-        <div class="hero-body">
-            <div class="container has-text-centered">
-               {% block content %}
-               {% endblock %}
-            </div>
-        </div>
+      </div>
     </section>
-</body>
-<script>
- $(document).ready(function() {
-
-  // Check for click events on the navbar burger icon
-  $(".navbar-burger").click(function() {
-
-      // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
-      $(".navbar-burger").toggleClass("is-active");
-      $(".navbar-menu").toggleClass("is-active");
-
-  });
-});
-</script>
+  </body>
+  <script>
+    $(document).ready(function() {
+      // Check for click events on the navbar burger icon
+      $(".navbar-burger").click(function() {
+        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+        $(".navbar-burger").toggleClass("is-active");
+        $(".navbar-menu").toggleClass("is-active");
+      });
+    });
+  </script>
 </html>

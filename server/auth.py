@@ -48,7 +48,7 @@ def signup():
     if current_user.is_authenticated:
         return redirect(url_for('main.profile'))
     classId = genRandomClass()
-    while (os.path.isfile("./server/class/"+classId+'.json')):
+    while (os.path.isfile("./server/storage/class/"+classId+'.json')):
       classId = genRandomClass()
     return render_template('signup.html',classId = classId.upper());
 
@@ -80,14 +80,14 @@ def signup_post():
     db.session.add(new_user)
     db.session.commit()
 
-    with open("./server/class/default.json") as f:
+    with open("./server/storage/class/default.json") as f:
       data = json.load(f)
       f.close()
 
     data["className"] = className
     data["lastUpdated"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
 
-    with open("./server/class/"+classId+'.json', 'w', encoding='utf8') as outfile:
+    with open("./server/storage/class/"+classId+'.json', 'w', encoding='utf8') as outfile:
       outfile.write(json.dumps(data,indent=4))
       outfile.close()
 

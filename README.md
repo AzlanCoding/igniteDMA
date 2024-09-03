@@ -8,6 +8,10 @@ The server is based off a past project which is based off a tutorial found [here
 <br>
 This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 
+<a href="https://bulma.io">
+  <img src="https://bulma.io/assets/images/made-with-bulma.png" alt="Made with Bulma" width="256" height="48">
+</a>
+
 ## Important Notes
 1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in the [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
 > An extension can have at least 5000 dynamic rules. This is exposed as the `MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES`.
