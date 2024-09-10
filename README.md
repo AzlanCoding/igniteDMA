@@ -39,7 +39,7 @@ This full stack application does not collect any personal data nor does it have 
   - Documentation for Ignite DMA
 <br><br>
 - **End of June 2025**
-  - Documentation for Ignite DMA
+  - Ability to manage the installation, enabling, disabling and removal of extensions from the chrome web store on students' devices.
 <br><br>
 - **Future Goals**
   - Timetable generation and ability to sync with "Live class" system
