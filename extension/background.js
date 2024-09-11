@@ -26,6 +26,7 @@ function areMapsEqual(map1, map2) {
 
 
 function checkProfileActive(data){
+  // TODO: Check if it will work with overnight timing
   let d = new Date();
   if ((data.startHour == data.endHour) && (data.startMin == data.endMin) && (data.enforceDays.includes(d.getDay()))){
     return true;
@@ -35,6 +36,27 @@ function checkProfileActive(data){
   let secondsEndSince2400 = ((data.endHour*3600) + (data.endMin*60));
   return ((data.enforceDays.includes(d.getDay())) && ((secondsStartSince2400 <= secondsNowSince2400) && (secondsEndSince2400 > secondsNowSince2400)))
 }
+/*function checkProfileActive(enforceDays, enrollTime){
+  let [startHour, startMin] = enrollTime.start.split(":");
+  let [endHour, endMin] = enrollTime.end.split(":");
+  let d = new Date();
+  if (enforceDays.includes(d.getDay())){
+    if (enrollTime.start == enrollTime.end){
+      return true;
+    }
+    let secondsNowSince2400 = ((d.getHours()*3600) + (d.getMinutes()*60));
+    let secondsStartSince2400 = ((startHour*3600) + (startMin*60));
+    let secondsEndSince2400 = ((endHour*3600) + (endMin*60));
+    if (secondsStartSince2400 >= secondsEndSince2400){
+      secondsEndSince2400 += 86400;//Overnight profile. Add 24hrs
+    }
+    return ((secondsStartSince2400 <= secondsNowSince2400) && (secondsEndSince2400 > secondsNowSince2400))
+
+  }
+  else {
+    return false
+  }
+}*/
 
 function enforceBlockedSites(data){
   console.log("Enforcing new blockedSites");
@@ -116,7 +138,7 @@ function enforceBlockedSites(data){
 }
 
 function setBlockedSites(){
-  console.log("checking blocked sites changes")
+  console.log("checking blocked sites changes");
   return getClasses().then((classList) => {
     let blockedSitesCache = new Map();
     let activeProfilesCache = new Map();
@@ -207,7 +229,7 @@ function syncProfiles(){
 function setBlockedSitesLoop(){
   return setBlockedSites().then(() => {
     let now = new Date();
-    let delay = (60 - now.getSeconds()) * 1000;
+    let delay = (61 - now.getSeconds()) * 1000;//Runs every minute + 1 second delay just in case
     return setTimeout(setBlockedSitesLoop,delay)
   });
 }
@@ -257,7 +279,13 @@ function relaunchEnforceWindow(windowId) {
 }
 function fulllscreenEnforceWindow(windowId){
   if (windowId === WindowTopRuleData.windowId) {
-    return chrome.windows.update(windowId, { state: 'fullscreen'});
+    try{
+      return chrome.windows.update(windowId, { state: 'fullscreen'});
+    }
+    catch(err){
+      //probably can't find the window
+      console.log(err);
+    }
   }
 }
 function relaunchClosedEnforceWindow(windowId) {
@@ -404,11 +432,15 @@ function checkPermissions() {
 
 
 export function addClass(className){
-  return getUpdates(className);
+  return getUpdates(className).then(setBlockedSites);
 }
 
-export function removeClass(className){
-  return chrome.storage.sync.remove(className);
+/*export function removeClass(className){
+  return chrome.storage.sync.remove(className).then(setBlockedSites);
+}*/
+
+export function removeClass(){
+  return chrome.storage.sync.clear().then(setBlockedSites);
 }
 
 export function getUpdateHost(){

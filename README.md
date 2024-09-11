@@ -1,15 +1,15 @@
 # Project Ignite
 Project Ignite is a new Device Manager Application (DMA) for schools developed after [Mobile Guardian was hacked](https://www.channelnewsasia.com/singapore/mobile-guardian-application-remove-cybersecurity-incident-moe-4526676).
 <br>
-Project Ignite focuses on ensuring the **Security** and **Privacy** of students as well as being as **Fail-Proof** as possible. The chrome extension for students is **designed to work even if the server goes offline** after it has been properly set up. Moreover, the chrome extension does not collect any data from students' devices (as of version 0.1).
+Project Ignite focuses on ensuring the **Security** and **Privacy** of students as well as being as **Fail-Proof** as possible. The chrome extension for students is **designed to work even if the server goes offline** after it has been properly set up. Moreover, the chrome extension does not collect any data from students' devices (as of version 0.1.0).
 <br>
-The first version of this application was made in less than 3 days and is currently under testing.
+The first version unstable of this application was made in less than 3 days.
 <br><br>
-I believe that Singapore needs our own solution for a DMA to accommodate for the various needs of students and teachers. In the future, Project Ignite be more than just a DMA. It will be an all in one software to help teachers facilitate learning through various tools and feature that will keep student intrigued to learning. These features will be synced to the complex timetable schools in Singapore have. It will also come with software to help schools create these complex timetables.
+I believe that Singapore needs our own solution for a DMA to accommodate for the various needs of students and teachers. In the future, Project Ignite be more than just a DMA. It will be an all in one software to help teachers facilitate learning through various tools and features that will keep students intrigued to conducted lessons. These features will be synced to the complex timetable schools in Singapore have. It will also come with software to help schools create these complex timetables.
 <br>
 Thus, I plan to further develop this project after my GCE O'Level examinations.<br>
 <br>
-The server is based off a past project which is based off a tutorial found [here](https://www.digitalocean.com/community/tutorials/how-to-add-authentication-to-your-app-with-flask-login).
+The server is originally based off a past project which is based off a tutorial found [here](https://www.digitalocean.com/community/tutorials/how-to-add-authentication-to-your-app-with-flask-login).
 <br>
 This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 
@@ -44,16 +44,16 @@ This full stack application does not collect any personal data nor does it have 
 - **Future Goals**
   - Timetable generation and ability to sync with "Live class" system
   - iPad and Windows Client for students using these devices
-  - Point system linked to "Live Polls". Points can be used in...
+  - Point system linked to "Live Polls". Points can be used to claim...
 
 
 ## Important Notes
-1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in the [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
-> An extension can have at least 5000 dynamic rules. This is exposed as the `MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES`.
+1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in Chrome's [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
+  > An extension can have at least 5000 dynamic rules. This is exposed as the `MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES`.
 
 2. The extension checks for updates from the profile every 30 seconds. You can force a refresh by pressing `Refresh Profile` in the options page.
 
-3. **FOR ADMINISTRATORS:** When force installing the extension on students' devices, extension needs access to `file://` URLs and `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.<br>
+3. **FOR ADMINISTRATORS:** When force installing the extension on students' devices, extension needs access to file URLs and `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.<br>
 Even if you cannot enforce this setting, it will by default have access to all sites. A full screen popup will annoy students if they attempt to try to change the setting. The extension will also switch to `legacyWebBlocking` to stop students from visiting the blocked webpage should this popup fail to launch.
 
 

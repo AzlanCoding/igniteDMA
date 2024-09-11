@@ -51,7 +51,7 @@ function masterPin(){
   document.getElementById("removeProfileBtn").classList.add("is-loading");
   fetch(updateHost+"/api/v0/masterPin",{cache: "no-cache", method:"post", headers: {'PIN': document.getElementById('maserPinInput').value}}).then((response) => {
     if (response.ok) {
-      chrome.storage.sync.clear().then(()=>{
+      removeClass().then(()=>{
         alert("REMOVAL PROCESS SUCCESS!");
         window.location.reload();
       });
