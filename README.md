@@ -3,7 +3,7 @@ Project Ignite is a new Device Manager Application (DMA) for schools developed a
 <br>
 Project Ignite focuses on ensuring the **Security** and **Privacy** of students as well as being as **Fail-Proof** as possible. The chrome extension for students is **designed to work even if the server goes offline** after it has been properly set up. Moreover, the chrome extension does not collect any data from students' devices (as of version 0.1.0).
 <br>
-The first version unstable of this application was made in less than 3 days.
+The first unstable version of this application was made in less than 3 days.
 <br><br>
 I believe that Singapore needs our own solution for a DMA to accommodate for the various needs of students and teachers. In the future, Project Ignite be more than just a DMA. It will be an all in one software to help teachers facilitate learning through various tools and features that will keep students intrigued to conducted lessons. These features will be synced to the complex timetable schools in Singapore have. It will also come with software to help schools create these complex timetables.
 <br>
@@ -25,7 +25,6 @@ This full stack application does not collect any personal data nor does it have 
 ## Feature Timeline
 - **End of October 2024**
   - Multiple profile Support
-<br><br>
 - **End of November 2024**
   - Ability to handle more than 5,000 blocked sites
   - "Live class" feature, which includes the following features:
@@ -34,13 +33,10 @@ This full stack application does not collect any personal data nor does it have 
     - "Live Management". Allows teachers, during a live class session, to see the sites students are visiting, push sites for students to visit, and, enforce a custom set of rules for which sites students are allowed to visit.
     - "Q&A". Allows students to post questions to the teacher without disrupting the entire lesson.
     - "Live Polls". Allows teachers to create multiple choice or open ended polls. This is useful when teachers show questions in their slides and ask students to answer.
-<br><br>
 - **By 3rd quarter of December 2024**
   - Documentation for Ignite DMA
-<br><br>
 - **End of June 2025**
   - Ability to manage the installation, enabling, disabling and removal of extensions from the chrome web store on students' devices.
-<br><br>
 - **Future Goals**
   - Timetable generation and ability to sync with "Live class" system
   - iPad and Windows Client for students using these devices
@@ -78,8 +74,8 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [ ] Server: Code cleanup
 - [ ] App Icon
 - [ ] Server: Create reset profile password feature?
-- [ ] Extension (`background.js`): Implement Error Handling.
+- [ ] Extension (`background.js`): Implement Logging.
 - [ ] Extension: Detect use of [pillow](https://github.com/S1monlol/pillow)
-- [ ] Extension: Implement End-to-End Encryption to prevent server impersonation. (Students might fork server and bypass through DNS hijack)
+- [ ] Extension: Implement Verify Magic Packet to prevent server impersonation. (Students might fork server and bypass through DNS hijack)
 - [ ] Extension: Find a way around `declarativeNetRequest` 5000 rule limit
 - [ ] Extension: Support for multiple profiles

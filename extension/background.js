@@ -451,6 +451,24 @@ export function syncNow(){
   return syncProfiles();
 }
 
+//The function below is used to verify the main server's identity
+//How it works is that when the main server receives the correct PIN
+//to remove the enrollment. A secret file is sent to the client and
+//the checksum of the file is measured to verify that the server
+//contacted is indeed the real server.
+//Function has not been Implemented yet
+/*export function verifyMagicPacket(blob){
+  return blob.arrayBuffer().then((dataBuffer) => {
+    return crypto.subtle.digest('SHA-256', dataBuffer).then((hashBuffer) => {
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const expectedChecksum = "139531df1cac2ff1b2be3fa5afde6a904cef6583de35efe07f1ddfe6f3228da5";
+      return hashHex === expectedChecksum;
+    });
+  });
+}
+*/
+
 if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ == '__main__':` in python
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request === 'getBlockedSites') {

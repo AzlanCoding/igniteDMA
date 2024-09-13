@@ -59,9 +59,41 @@ function masterPin(){
       alert("Wrong PIN");
     }
     document.getElementById("removeProfileBtn").classList.remove("is-loading");
+  }).catch((err) => {
+    alert("FAILED TO CONTACT SERVER!\n"+err);
+    document.getElementById("removeProfileBtn").classList.remove("is-loading");
   });
 }
 
+//Not implemented yet
+/*
+function masterPin(){
+  document.getElementById("removeProfileBtn").classList.add("is-loading");
+  let enrollCode = "";
+  return fetch(updateHost+"/api/v1/masterPin",{cache: "no-cache", method:"post", headers: {'enrollCode': enrollCode, 'PIN': document.getElementById('maserPinInput').value}}).then((response) => {
+    if (response.ok) {
+      response.blob().then((data) => {
+        verifyMagicPacket(data).then((outcome) => {
+          if (outcome){
+            removeClass().then(()=>{
+              alert("REMOVAL PROCESS SUCCESS!");
+              window.location.reload();
+            });
+          }
+          else{
+            alert("Wrong PIN");
+            document.getElementById("removeProfileBtn").classList.remove("is-loading");
+          }
+        });
+      });
+    }
+    else {
+      alert("Wrong PIN");
+      document.getElementById("removeProfileBtn").classList.remove("is-loading");
+    }
+  });
+}
+*/
 
 function createBlockedSiteData(value){
   const container = document.getElementById('profileBlockedSites');
@@ -158,10 +190,13 @@ document.getElementById("refreshProfileBtn").addEventListener("click", () => {
       alert("STOP SPAMMING `REFRESH PROFILE` YOU'RE BREAKING THE APP\n"+err+"\nREFRESHING PAGE...");
       canContinue = false;
       window.location.reload();
-      // BUG: Uncaught (in promise) Error: This request exceeds the MAX_WRITE_OPERATIONS_PER_MINUTE quota.
+      // NOTE: Uncaught (in promise) Error: This request exceeds the MAX_WRITE_OPERATIONS_PER_MINUTE quota.
       // Caused when `Refresh Profile` is spammed
     }
     else{
+      // I know this looks a bit stupid but it is needed.
+      // Even after window.location.reload() is called this function
+      // may still execute as the button may have been spammed too many times.
       if (canContinue){
         alert("FAILED TO CONTACT SERVER!\n"+err);
       }
