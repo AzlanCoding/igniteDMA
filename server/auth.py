@@ -1,13 +1,24 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-import random, string, json, os, datetime
-from .models import User
+import random, string, json, os, datetime, secrets
+from .jsonDatabase import Loader, Setter
+from .models import User, EnrollData
 from . import db
 
 
-def genRandomClass():
+def genRandomEnrollCode():
+    letters = ''.join(random.choice(string.ascii_lowercase) for i in range(5))
+    numbers = ''.join(random.choice(string.digits) for i in range(3))
+    code = list(letters+numbers)
+    random.shuffle(code)
+    return ''.join(code)
+
+def genRandomProfileCode():
    return ''.join(random.choice(string.ascii_lowercase) for i in range(8))
+
+def genRandomPassword():
+    return ''.join(secrets.choice(string.ascii_letters + string.digits + "!@#$%^&*") for i in range(12))
 
 
 auth = Blueprint('auth', __name__)
@@ -23,12 +34,12 @@ def login_post():
     if current_user.is_authenticated:
         return redirect(url_for('main.profile'))
     # login code goes here
-    classId = request.form.get('classId').lower()
+    email = request.form.get('email')
     password = request.form.get('password')
     remember = True if request.form.get('remember') else False
     next_url = request.form.get("next")
 
-    user = User.query.filter_by(classId=classId).first()
+    user = User.query.filter_by(email=email).first()
 
     # check if the user actually exists
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
@@ -38,7 +49,6 @@ def login_post():
 
     # if the above check passes, then we know the user has the right credentials
     login_user(user, remember=remember)
-    print(next_url)
     if (next_url):
         return redirect(next_url)
     return redirect(url_for('main.profile'))
@@ -47,51 +57,56 @@ def login_post():
 def signup():
     if current_user.is_authenticated:
         return redirect(url_for('main.profile'))
-    classId = genRandomClass()
-    while (os.path.isfile("./server/storage/class/"+classId+'.json')):
-      classId = genRandomClass()
-    return render_template('signup.html',classId = classId.upper());
+    return render_template('signup.html');
 
 @auth.route('/signup', methods=['POST'])
 def signup_post():
     if current_user.is_authenticated:
         return redirect(url_for('main.profile'))
 
-    # code to validate and add user to database goes here
-    classId = request.form.get('classId').lower()
-    password = request.form.get('password')
-    className = request.form.get('className')
+    email = request.form.get('email').lower()
+    password = request.form.get('passwordConfirm')
 
     if request.form.get('masterPin') != os.environ['MASTER_PIN']:
         flash("Master PIN is incorrect")
         return redirect(url_for('auth.signup'))
 
-    assert classId != ""
-    user = User.query.filter_by(classId=classId).first() # if this returns a user, then the email already exists in database
-
-    if user: # if a user is found, we want to redirect back to signup page so user can try again
-        flash('classID already exists! This was not supposed to happen. Please refresh the page and contact AzlanCoding if the issue persists.')
+    if User.query.filter_by(email=email).first():
+        flash('The email you entered already exists. Go to the Login page to login.')
         return redirect(url_for('auth.signup'))
 
-    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-    new_user = User(classId=classId, password=generate_password_hash(password, method='scrypt'))
+    with open("./server/storage/schools/default.json", 'r', encoding='utf8') as f:
+        data = json.load(f)
+        f.close()
 
-    # add the new user to the database
-    db.session.add(new_user)
+    enrollCode = genRandomEnrollCode()
+    while (os.path.isfile("./server/storage/schools/"+enrollCode+'.json')):
+        enrollCode = genRandomEnrollCode()
+
+    data["enrollCode"] = enrollCode
+
+    newProfiles = []
+
+    for profileCode in data["profiles"]:
+        newProfileCode = genRandomProfileCode()
+        while (os.path.isfile("./server/storage/profiles/"+newProfileCode+'.json')):
+            newProfileCode = genRandomProfileCode()
+        Setter.saveProfile(newProfileCode, Loader.loadProfile(profileCode));
+        newProfiles.append(newProfileCode)
+
+    data["profiles"] = newProfiles
+
+    Setter.saveEnroll(enrollCode,data)
+
+    newUser = User(email=email, accountType="enrollAdmin", enrollId=enrollCode, password=generate_password_hash(password, method='scrypt'), accountStatus="unlocked")
+    db.session.add(newUser)
     db.session.commit()
 
-    with open("./server/storage/class/default.json") as f:
-      data = json.load(f)
-      f.close()
+    newEnrollPassword = EnrollData(id=enrollCode, masterPin=genRandomPassword())
+    db.session.add(newEnrollPassword)
+    db.session.commit()
 
-    data["className"] = className
-    data["lastUpdated"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
-
-    with open("./server/storage/class/"+classId+'.json', 'w', encoding='utf8') as outfile:
-      outfile.write(json.dumps(data,indent=4))
-      outfile.close()
-
-    flash("Account creation successful!\nYour Profile Code is "+classId.upper())
+    flash("Account creation successful!\nLogin to get started!")
 
     return redirect(url_for('auth.login'))
 

@@ -1,101 +1,322 @@
 <!DOCTYPE html>
-<html lang="en" style="overflow:auto">
+<html data-theme="dark">
+  <!-- TODO: Make the website look good in both light and dark mode -->
   <head>
     <meta charset="utf-8">
-    <meta name = "viewport" content = "width=device-width, initial-scale = 1.0">
-    <meta http-equiv = "X-UA-Compatible" content = "ie=edge">
-    <title>Ignite DMA</title>
-    <link href = "bulma.min.css" rel = "stylesheet" type = "text/css">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src = "optionsPage.js" type="module"></script>
+    <link rel="stylesheet" href="bulma.min.css">
+    <link rel="stylesheet" href="theme.css">
+    <title>Ignite DMA Manager – Profile</title>
     <style>
+      .profileTop{
+        display: flex;
+      }
+      .profileInfo{
+        width: 90%;
+        height: 75%;
+        margin-bottom: 10%
+      }
+      .profilePlaceholder{
+        display: none !important;
+      }
+      .profilePlaceholder div{
+        opacity: 1;
+        filter: blur(0.75em);
+      }
+      .profilePlaceholder .addIcon{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        user-select: none;
+        align-content: center;
+        opacity: 1 !important;
+        filter: none !important;
+        text-align: center !important;
+        transform: translate(calc(-1*var(--bulma-box-padding)), calc(-1*var(--bulma-box-padding)));
+      }
+      .profileBottom{
+        width: 100%;
+        height: 25%
+      }
+      .status{
+        pointer-events: none;
+      }
+      .profileEntry{
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        user-select: none;
+      }
+      .profileContainer{
+        overflow: auto;
+        user-select: none;
+        /*text-align: left;*/
+      }
+      .profileBox{
+        width: 25%;
+        position: relative;
+        min-width: 200px;
+        /*min-height: 150px;*/
+        display: inline-block;
+        text-align: left;
+        margin: 0.5em;
+        cursor: pointer;
+        transition: box-shadow 0.5s ease-in-out;
+        box-shadow: 0 2px 3px rgba(10,10,10,.2), 0 0 0 1px rgba(10,10,10,.2);
+      }
+      .profileBox:hover{
+        box-shadow: 10px 15px rgba(10,10,10,.2);
+        transition: box-shadow 0.5s ease-in-out;
+      }
+
+      #profileModal .modal-card{
+        width: 90%;
+        height: 90%;
+      }
+      .modal-card-head{
+        height: 10%;
+      }
+      .modal-card-body{
+        height: 80%;
+        overscroll-behavior: none;
+      }
+      .modal-card-foot{
+        height: 10%;
+        justify-content: right;
+      }
+      .modal-card-foot .buttons{
+        margin-bottom: unset;
+      }
+      #notifications{
+        position: fixed;
+        top: 10%;
+        left: 10%;
+        right: 10%;
+        z-index: 41;
+      }
+      #notifications .message{
+        opacity: 0.9;
+        box-shadow: 5px 5px rgba(10,10,10,.2);
+      }
+      .hidden{
+        display: none !important;
+      }
+      .blocked-site-entry{
+        width: unset;
+      }
+
       .table-container th {
         white-space: nowrap;
       }
       .table-container td {
         width: 100%;
       }
-      .blocked-site-data {
-        width: unset;
+
+      input{
+        text-align: center;
       }
+
+      #notifi{
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+      }
+
+      .loadSign{
+        height:100%;
+        border-color: transparent;
+        background-color: transparent;
+        pointer-events: none;
+      }
+
+      .loadSign::after{
+        border-color: transparent transparent var(--bulma-text-strong) var(--bulma-text-strong) !important;
+        -webkit-animation: spinAround .5s infinite linear;
+        animation: spinAround .5s infinite linear;
+        border: 5px solid #dbdbdb;
+        border-radius: 100%;
+        border-right-color: transparent;
+        border-top-color: transparent;
+        content: "";
+        display: block;
+        height: 5em;
+        position: relative;
+        width: 5em;
+      }
+
     </style>
   </head>
-  <body>
-    <section class="hero is-primary is-fullheight">
+  <body class="default-background">
+    <section class="hero is-fullheight">
       <div class="hero-body">
-        <div class="container">
-          <p class="title">Ignite DMA</p>
-          <p class="subtitle">A Device Manager Application (DMA) for students under MOE</p>
-          <div class="box">
-            <div class="table-container is-hidden" id="profile">
+        <div class="container has-text-centered">
+          <div id="notifications">
+          </div>
+          <h1 class="title" id="greeting">Hello!</h1>
+          <h2 class="subtitle">Welcome to IgniteDMA</h2>
+          <div class="box" id="loadingPlaceholder">
+            <button class="button loadSign"></button>
+          </div>
+          <div class="box hidden" id="enrollInfo">
+            <p class="title is-size-4">Enrollment Information</p>
+            <div class="table-container block is-fullwidth">
               <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
                 <tbody>
                   <tr class="is-selected title is-4">
-                    <th>Profile Name</th>
-                    <td id="profileName"></td>
+                    <th>School</th>
+                    <td>
+                      <p id="enrollName" style="display: inline;"></p>
+                    </td>
                   </tr>
                   <tr>
-                    <th>Time Range</th>
-                    <td id="profileTime"></td>
+                    <th>Last Updated</th>
+                    <td id="enrollLastUpdated"></td>
                   </tr>
                   <tr>
-                    <th>Day Range</th>
-                    <td id="profileDay"></td>
-                  </tr>
-                  <tr>
-                    <th>Last Modified</th>
-                    <td id="profileLastUpdated"></td>
-                  </tr>
-                  <tr>
-                    <th>Last Refresh</th>
-                    <td id="profileLastFetch"></td>
-                  </tr>
-                  <tr>
-                    <th>Blocked Sites</th>
-                    <td><div id="profileBlockedSites"></div></td>
+                    <th>Last Synced with Server</th>
+                    <td id="enrollLastSync"></td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <div class="content" id="noProfileMsg">
-              No profile added! Click "Add Profile" to continue.
+            <div class="buttons" style="justify-content: right">
+              <button class="button is-danger" id="enrollModalOpenBtn">Remove Enrollment</button>
+              <button class="button is-info" id="syncBtn">Sync Now</button>
             </div>
-            <button class="button is-success" id="addProfile">Add Profile</button>
-            <button class="button is-success is-hidden" id="refreshProfileBtn">Refresh Profile</button>
-            <button class="button is-danger is-hidden" id="removeProfile">Remove Profile</button>
+
+
+            <p class="title is-size-4">Profiles</p>
+            <div class="box block has-background-dark profileContainer">
+
+              <!--div class="box profileBox" data-profile="jijsij">
+                <div class="profileTop">
+                  <div class="profileInfo">
+                    <p class="profileEntry title is-size-5">Baseline Profile</p>
+                    <p class="profileEntry subtitle is-size-6">Everyday<br>24/7</p>
+                  </div>
+                  <div class="editButtonContain">
+                    <button class="editButton" onclick="profileEdit(this)"><span class="material-symbols-outlined">edit</span></button>
+                  </div>
+                </div>
+                <div class="profileBottom">
+                  <button class="button is-success status">Active</button>
+                  <button class="button is-warning status hidden">Inactive</button>
+                  <button class="button is-danger is-inverted status hidden">Disabled</button>
+                </div>
+              </div-->
+
+              <div class="box profileBox profilePlaceholder" data-profile="">
+                <div class="addIcon">
+                  <strong><span class="material-symbols-outlined" style="font-size: 36px;">add</span></strong>
+                  <p class="subtitle"><strong>Click here to add a new profile</strong></p>
+                </div>
+                <div class="profileTop">
+                  <div class="profileInfo">
+                    <p class="profileEntry title is-size-5">Example Profile</p>
+                    <p class="profileEntry subtitle is-size-6">Weekdays<br>08:00-14:30</p>
+                  </div>
+                </div>
+                <div class="profileBottom">
+                  <button class="button is-success status">Active</button>
+                  <button class="button is-warning status hidden">Inactive</button>
+                  <button class="button is-danger is-inverted status hidden">Disabled</button>
+                </div>
+              </div>
+
+              <p class="hidden" id="noProfilesMsg">This enrollment has no supported/configured profiles.</p>
+
+            </div>
+          </div>
+          <div class="box hidden" id="enrollAdd">
+            <div class="field">
+              <label class="label">Enter Enrollment Code for Setup</label>
+              <div class="control">
+                <input class="input" type="text" placeholder="Enter Enrollment Code" id="enrollCodeInput">
+              </div>
+            </div>
+            <div class="buttons" style="justify-content: right">
+              <button class="button is-success" id="enrollCodeSubmit" disabled>Add Enrollment</button>
+            </div>
+          </div>
+          <div id="profileModal" class="modal">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+              <header class="modal-card-head">
+                <p class="modal-card-title">Profile Information</p>
+                <button class="delete profileModalClose" aria-label="close"></button>
+              </header>
+              <section class="modal-card-body">
+                <div id="profileViewer">
+                  <p class="title is-size-4">General Information</p>
+                  <div class="table-container" id="profile">
+                    <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
+                      <tbody>
+                        <tr class="is-selected title is-4">
+                          <th>Profile Name</th>
+                          <td id="profileName"></td>
+                        </tr>
+                        <tr>
+                          <th>Status</th>
+                          <td id="profileStatus"></td>
+                        </tr>
+                        <tr>
+                          <th>Day Range</th>
+                          <td id="profileDay"></td>
+                        </tr>
+                        <tr>
+                          <th>Time Range</th>
+                          <td id="profileTime"></td>
+                        </tr>
+                        <tr>
+                          <th>Last Updated</th>
+                          <td id="profileLastUpdated"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="title is-size-4">Blocked Sites</p>
+                  <div class="box has-background-dark" id="profileBlockedSites">
+                    <!--input class="blocked-site-entry input" readOnly value="abc.com">
+                    <input class="blocked-site-entry input" readOnly value="xyz.com"-->
+                  </div>
+                </div>
+              </section>
+              <footer class="modal-card-foot">
+                <div class="buttons">
+                  <button class="button profileModalClose">Close</button>
+                </div>
+              </footer>
+            </div>
+          </div>
+          <div class="modal" id="enrollModal">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+              <header class="modal-card-head">
+                <p class="modal-card-title">Remove Enrollment</p>
+                <button class="delete enrollModalClose" aria-label="close"></button>
+              </header>
+              <section class="modal-card-body" style="text-align: left;">
+                <div class="field">
+                  <label class="label">Master PIN</label>
+                  <div class="control">
+                    <input class="input" name="PIN" type="password" placeholder="Enter Master PIN" style="text-align: left;" id="masterPinInput">
+                  </div>
+                </div>
+              </section>
+              <footer class="modal-card-foot">
+                <div class="buttons">
+                  <button class="button enrollModalClose">Cancel</button>
+                  <button class="button is-success" id="removeEnrollmentBtn">Remove Enrollment</button>
+                </div>
+              </footer>
+            </div>
           </div>
         </div>
       </div>
     </section>
-    <div class="modal" id="addProfileModal">
-      <div class="modal-background"></div>
-      <div class="modal-content">
-        <div class="box">
-          <div class="field">
-            <label class="label">Profile Code</label>
-            <div class="control">
-              <input class="input" type="text" maxLength="8" placeholder="ABCDEFGH" id="classCode" style="text-transform:uppercase"/>
-            </div>
-          </div>
-          <button class="button is-primary" id="addProfileBtn">Add Profile</button>
-        </div>
-      </div>
-      <button class="modal-close is-large" aria-label="close" id="addProfileClose"></button>
-    </div>
-
-    <div class="modal" id="removeProfileModal">
-      <div class="modal-background"></div>
-      <div class="modal-content">
-        <div class="box">
-          <div class="field">
-            <label class="label">Master PIN</label>
-            <div class="control">
-              <input class="input" type="password" id="maserPinInput" placeholder="Enter Master Pin"/>
-            </div>
-          </div>
-          <button class="button is-danger" id="removeProfileBtn">Remove Profile</button>
-        </div>
-      </div>
-      <button class="modal-close is-large" aria-label="close" id="removeProfileClose"></button>
-    </div>
-    <script src = "scripts.js" type="module"></script>
   </body>
 </html>

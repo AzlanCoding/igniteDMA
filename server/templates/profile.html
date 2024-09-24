@@ -109,10 +109,17 @@
       top: 10%;
       left: 10%;
       right: 10%;
-      z-index: 1;
+      z-index: 41;
+    }
+    #notifications .message{
+      opacity: 0.9;
+      box-shadow: 5px 5px rgba(10,10,10,.2);
     }
     .hidden{
       display: none !important;
+    }
+    .blocked-site-entry{
+      width: unset;
     }
 
     .table-container th {
@@ -160,6 +167,9 @@
       padding: 2px 5px;
       transform: rotate(45deg);
     }
+    .remove-btn::after{
+      content: "+";
+    }
     .blocked-site-wrapper:hover .remove-btn {
       display: inline;
     }
@@ -182,37 +192,50 @@
 
 
     .loadSign{
-        height:100%;
-        border-color: transparent;
-        background-color: transparent;
-        pointer-events: none;
-      }
+      height:100%;
+      border-color: transparent;
+      background-color: transparent;
+      pointer-events: none;
+    }
 
-      .loadSign::after{
-        border-color: transparent transparent var(--bulma-text-strong) var(--bulma-text-strong) !important;
-        -webkit-animation: spinAround .5s infinite linear;
-        animation: spinAround .5s infinite linear;
-        border: 5px solid #dbdbdb;
-        border-radius: 100%;
-        border-right-color: transparent;
-        border-top-color: transparent;
-        content: "";
-        display: block;
-        height: 5em;
-        position: relative;
-        width: 5em;
-      }
+    .loadSign::after{
+      border-color: transparent transparent var(--bulma-text-strong) var(--bulma-text-strong) !important;
+      -webkit-animation: spinAround .5s infinite linear;
+      animation: spinAround .5s infinite linear;
+      border: 5px solid #dbdbdb;
+      border-radius: 100%;
+      border-right-color: transparent;
+      border-top-color: transparent;
+      content: "";
+      display: block;
+      height: 5em;
+      position: relative;
+      width: 5em;
+    }
 
-      [type="time"]::-webkit-calendar-picker-indicator {
-        background-image: url("/assets/schedule_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24.png");
-      }/* NOTE: This does not work on firefox */
+    [type="time"]::-webkit-calendar-picker-indicator {
+      background-image: url("/assets/schedule_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24.png");
+    }/* NOTE: This does not work on firefox */
   </style>
 {% endblock %}
 
 {% block content %}
   <div id="notifications">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <article class="message is-success">
+          <div class="message-header">
+            Success
+            <button class="delete" onclick="closeNotifi(this)"></button>
+          </div>
+          <div class="message-body">
+            {{ messages[0] }}
+          </div>
+        </article>
+      {% endif %}
+    {% endwith %}
   </div>
-  <h1 class="title">Good Afternoon!</h1>
+  <h1 class="title" id="greeting"></h1>
   <h2 class="subtitle">Welcome to Ignite DMA Manager</h2>
   <div class="box">
     <p class="title is-size-4">Enrollment Information</p>
@@ -245,7 +268,7 @@
             <td id="enrollCode"></td>
           </tr>
           <tr>
-            <th>Last Updated</th>
+            <th>Last Modified</th>
             <td id="enrollLastUpdated"></td>
           </tr>
           <tr>
@@ -258,8 +281,8 @@
         </tbody>
       </table>
     </div>
-    <div class="buttons" style="justify-content: right">
-      <button class="button is-warning" onclick="enrollEdit()">Change Removal Pin</button>
+    <div class="buttons is-right">
+      <button class="button is-warning" onclick="enrollEdit()">Change Removal PIN</button>
       <!--button class="button is-info" onclick="notifi('is-info', 'Sorry!', 'This feature is not ready yet.')">Print Information</button-->
     </div>
 
@@ -267,24 +290,24 @@
     <p class="title is-size-4">Profiles</p>
     <div class="box block has-background-dark profileContainer">
 
-      <div class="box profileBox" data-profile="jijsij" onclick="profileInfo(this)">
+      <!--div class="box profileBox" data-profile="jijsij" onclick="profileInfo(this)">
         <div class="profileTop">
           <div class="profileInfo">
             <p class="profileEntry title is-size-5">Baseline Profile</p>
             <p class="profileEntry subtitle is-size-6">Everyday<br>24/7</p>
           </div>
           <div class="editButtonContain">
-            <button class="editButton"  onclick="profileEdit(this)"><span class="material-symbols-outlined">edit</span></button>
+            <button class="editButton" onclick="profileEdit(this)"><span class="material-symbols-outlined">edit</span></button>
           </div>
         </div>
         <div class="profileBottom">
           <button class="button is-success status">Active</button>
-          <!--button class="button is-danger is-inverted status">Disabled</button-->
-          <!--button class="button is-warning status">Inactive</button-->
+          <button class="button is-warning status hidden">Inactive</button>
+          <button class="button is-danger is-inverted status hidden">Disabled</button>
         </div>
-      </div>
+      </div-->
 
-      <div class="box profileBox profilePlaceholder">
+      <div class="box profileBox profilePlaceholder" data-profile="" onclick="profileInfo(this)">
         <div class="addIcon">
           <strong><span class="material-symbols-outlined" style="font-size: 36px;">add</span></strong>
           <p class="subtitle"><strong>Click here to add a new profile</strong></p>
@@ -295,11 +318,13 @@
             <p class="profileEntry subtitle is-size-6">Weekdays<br>08:00-14:30</p>
           </div>
           <div class="editButtonContain">
-            <button class="editButton"><span class="material-symbols-outlined">edit</span></button>
+            <button class="editButton" onclick="profileEdit(this)"><span class="material-symbols-outlined">edit</span></button>
           </div>
         </div>
         <div class="profileBottom">
           <button class="button is-success status">Active</button>
+          <button class="button is-warning status hidden">Inactive</button>
+          <button class="button is-danger is-inverted status hidden">Disabled</button>
         </div>
       </div>
 
@@ -324,6 +349,10 @@
                   <td id="profileName"></td>
                 </tr>
                 <tr>
+                  <th>Status</th>
+                  <td id="profileStatus"></td>
+                </tr>
+                <tr>
                   <th>Day Range</th>
                   <td id="profileDay"></td>
                 </tr>
@@ -332,25 +361,30 @@
                   <td id="profileTime"></td>
                 </tr>
                 <tr>
-                  <th>Last Updated</th>
+                  <th>Last Modified</th>
                   <td id="profileLastUpdated"></td>
                 </tr>
               </tbody>
             </table>
           </div>
           <p class="title is-size-4">Blocked Sites</p>
-          <div class="box has-background-dark">
-            <p></p>
+          <div class="box has-background-dark" id="profileBlockedSites">
+            <!--input class="blocked-site-entry input" readOnly value="abc.com">
+            <input class="blocked-site-entry input" readOnly value="xyz.com"-->
           </div>
         </div>
-        <form id="profileEditor" class="hidden">
+        <form id="profileEditor" class="hidden" method="POST" action="/profile/updateProfile" onsubmit="formSubmit(event)">
           <p class="title is-size-4">General Information</p>
-          <div class="table-container" id="editProfile" method="POST" action="/profile" onsubmit="checkTime()">
+          <div class="table-container" id="editProfile">
             <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
               <tbody>
                 <tr class="is-selected title is-4">
                   <th>Profile Name</th>
-                  <td><input class="input" name="profileNameEdit" id="profileNameEdit" type="text" maxLength="15" onkeypress="preventFormSubmit(event)" required></input></td>
+                  <td><input class="input" name="profileNameEdit" id="profileNameEdit" type="text" onkeypress="preventFormSubmit(event)" required></input></td>
+                </tr>
+                <tr>
+                  <th>State</th>
+                  <td id="profileStateEdit"><label class="checkbox">Enabled: <input id="editState" name="editState" type="checkbox" onkeypress="preventFormSubmit(event)"></input></label></td>
                 </tr>
                 <tr>
                   <th>Day Range</th>
@@ -358,8 +392,8 @@
                     <div class="checkboxes" style="display:block">
                       <label class="checkbox"><input id="editSUN" name="editSUN" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Sunday</label>
                       <label class="checkbox"><input id="editMON" name="editMON" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Monday</label>
-                      <label class="checkbox"><input id="editWED" name="editWED" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Wednesday</label>
                       <label class="checkbox"><input id="editTUE" name="editTUE" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Tuesday</label>
+                      <label class="checkbox"><input id="editWED" name="editWED" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Wednesday</label>
                       <label class="checkbox"><input id="editTHU" name="editTHU" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Thursday</label>
                       <label class="checkbox"><input id="editFRI" name="editFRI" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Friday</label>
                       <label class="checkbox"><input id="editSAT" name="editSAT" type="checkbox" onkeypress="preventFormSubmit(event)"></input>Saturday</label>
@@ -386,11 +420,14 @@
                 <input type="text" class="blocked-site-input input" placeholder="Enter more sites here" onkeypress="handleKeyPress(event)" oninput="validateInputEvent(event)" id="firstBox"></input>
               </div>
               <div class="control">
-                <button class="button is-info" onclick="forceNewInput();event.preventDefault()">Add</button>
+                <button class="button is-info" onclick="event.preventDefault();forceNewInput()">Add</button>
               </div>
             </div>
           </div>
-          <textarea type="text" class="is-hidden" id="blockedSitesList" name="blockedSitesList" hidden></textarea>
+          <textarea style="display: none" id="blockedSitesList" name="blockedSitesList" hidden></textarea>
+          <input type="text" style="display: none" id="profileFormCode" name="profileCode" hidden></input>
+          <input type="number" style="display: none" id="profileFormLastUpdated" name="profileLastUpdated" hidden></input>
+          <input type="text" style="display: none" id="profileFormType" name="profileType" hidden></input>
           <!--button class="button is-success" id="saveProfile" type="submit" onclick="updateBlockedSitesList();if(document.getElementById('editProfile').reportValidity()){this.classList.add('is-loading');}">Save Changes</button>
           <button class="button is-danger" id="uneditProfile" onclick="if(confirm('Discard changes?')){renderUI(false);}event.preventDefault();">Cancel</button-->
         </form>
@@ -398,55 +435,93 @@
       <footer class="modal-card-foot">
         <div id="profileViewerButtons" class="buttons hidden">
           <button class="button" onclick="closeModalCard(this.parentElement)">Close</button>
-          <button class="button is-warning" onclick="renderModal('',true)">Edit</button>
+          <button class="button is-warning" onclick="renderModal(getModalProfileCode(this),true)">Edit</button>
         </div>
         <div id="profileEditorButtons" class="buttons hidden">
-          <button class="button" onclick="renderModal('',false)">Cancel</button>
-          <button class="button is-success">Save changes</button>
+          <button class="button" onclick="renderModal(getModalProfileCode(this),false)">Cancel</button>
+          <button class="button is-danger is-inverted" onclick="profileDelete(this)">Delete Profile</button>
+          <button class="button is-success" onclick="$('#profileEditor').trigger('submit')">Save Changes</button>
         </div>
       </footer>
     </div>
   </div>
   <div class="modal" id="enrollModal">
     <div class="modal-background"></div>
-    <form class="modal-card">
+    <form class="modal-card" action="/profile/changeEnrollPin" onsubmit="enrollPinValidate(event)" method="post">
       <header class="modal-card-head">
-        <p class="modal-card-title">Change Removal Pin</p>
+        <p class="modal-card-title">Change Removal PIN</p>
         <button class="delete" aria-label="close" onclick="closeModalFormCard(this)"></button>
       </header>
       <section class="modal-card-body" style="text-align: left;">
-        <div class="field">
-          <label class="label">New PIN</label>
-          <div class="control">
-            <input class="input" onkeypress="enrollPinCheck(event)" name="PIN" type="password" style="text-align: left;">
+        <div class="field is-horizontal">
+          <div class="field-label is-normal" style="flex-grow: 2">
+            <label class="label">New PIN</label>
+          </div>
+          <div class="field-body">
+            <div class="field has-addons">
+              <div class="control has-icons-left">
+                <input class="input" onkeypress="enrollPinCheck(event)" oninput="enrollPinCheck(event)" name="PIN" type="password" style="text-align: left;" required>
+                <span class="icon is-large is-left">
+                  <span class="material-symbols-outlined">key</span>
+                </span>
+              </div>
+              <div class="control">
+                <button class="button" onclick="toggleVisibility(this)">
+                  <span class="material-symbols-outlined" id="visibilityIcon">visibility</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="field">
-          <label class="label">Confirm new PIN</label>
-          <div class="control">
-            <input class="input" onkeypress="enrollPinCheck(event)" name="PINConfirm" type="password" style="text-align: left;">
+        <div class="field is-horizontal">
+          <div class="field-label is-normal" style="flex-grow: 2">
+            <label class="label">Confirm New PIN</label>
+          </div>
+          <div class="field-body">
+            <div class="field has-addons">
+              <div class="control has-icons-left">
+                <input class="input" onkeypress="enrollPinCheck(event)" oninput="enrollPinCheck(event)" name="PINConfirm" type="password" style="text-align: left;" required>
+                <span class="icon is-large is-left">
+                  <span class="material-symbols-outlined">key</span>
+                </span>
+              </div>
+              <div class="control">
+                <button class="button" onclick="toggleVisibility(this)">
+                  <span class="material-symbols-outlined" id="visibilityIcon">visibility</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
       <footer class="modal-card-foot">
         <div class="buttons">
           <button class="button" onclick="closeModalFormCard(this.parentElement)">Cancel</button>
-          <button class="button is-success" disabled>Update PIN</button>
+          <button class="button is-success" id="enrollPinSubmit" type="submit" disabled>Update PIN</button>
         </div>
       </footer>
     </form>
   </div>
-  <div id="userData" style="display: none">
-    {
-      "enrollName": "Test School",
-      "enrollCode": "ZKWCWQLF",
-      "lastUpdated": 1724981643693
-    }
+  <div class="modal" id="confirmModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title" id="confirmModalTitle"></p>
+        <button class="delete" aria-label="close" onclick="closeModalCard(this)"></button>
+      </header>
+      <section class="modal-card-body">
+        <p id="confirmModalContent" class="title is-5" style="font-weight: unset"></p>
+      </section>
+      <footer class="modal-card-foot">
+        <div class="buttons">
+          <button class="button" onclick="closeModalCard(this.parentElement)">Cancel</button>
+          <button class="button is-success" id="confirmModalSubmitBtn">OK</button>
+        </div>
+      </footer>
+    </div>
   </div>
-  <div id="enrollPinData" style="display: none">
-    {
-      "removalPin": "superSecretPassword"
-    }
+  <div id="userData" style="display: none">
+    {{ data }}
   </div>
   <script>
     function notifi(status, title, text){
@@ -458,30 +533,74 @@
       header.text(title);
       header.append($("<button>", {class: "delete", onclick: "closeNotifi(this)"}));
       let body = $("<div>", {class: "message-body"});
-      body.text(text);
+      body.html(text);
       notifi.append(header,body);
       $('#notifications').append(notifi);
+    }
+    function confirmModal(title, body, confirmCallback){
+      $('#confirmModal #confirmModalTitle').text(title);
+      $('#confirmModal #confirmModalContent').html(body);
+      $('#confirmModal #confirmModalSubmitBtn').removeClass('is-loading');
+      $('#confirmModal #confirmModalSubmitBtn').off('click');
+      $('#confirmModal #confirmModalSubmitBtn').on('click', confirmCallback);
+      $('#confirmModal').addClass('is-active');
+    }
+    function handleError(err){
+      notifi('is-danger','Error',"An unexpected Error occured: "+err.message)
+      return Promise.reject(err);
+    }
+    function parseResponse(response){
+      if (!response.ok){
+        throw new Error("Failed to fetch data from server.", {cause: response});
+      }
+      else{
+        return response.json();
+      }
     }
     function enrollPinCheck(event){
       if (event.key === 'Enter') {
           event.preventDefault();
       }
-      console.log($('input[name="PIN"]').val());
+      if ($('input[name="PIN"]').val().trim() != "" && $('input[name="PINConfirm"]').val().trim() != ""){
+        $("#enrollPinSubmit").prop("disabled",false);
+      }
+      else{
+        $("#enrollPinSubmit").prop("disabled",true);
+      }
+    }
+    function enrollPinValidate(event){
+      if ($('input[name="PIN"]').val() == "" || $('input[name="PINConfirm"]').val() == ""){
+        event.preventDefault();
+        $("#enrollPinSubmit").prop("disabled",false);
+        notifi('is-warning','Invalid PIN', 'New PIN cannot be empty!');
+      }
+      else if ($('input[name="PIN"]').val().trim() == "" || $('input[name="PINConfirm"]').val().trim() == ""){
+        event.preventDefault();
+        $("#enrollPinSubmit").prop("disabled",false);
+        notifi('is-warning','Invalid PIN', 'New PIN cannot only contain whitespaces!');
+      }
+      else if ($('input[name="PIN"]').val().trim() != $('input[name="PINConfirm"]').val().trim()){
+        event.preventDefault();
+        notifi('is-warning','PINs do not match', 'The PINs entered do not match.');
+      }
+      else{
+        $("#enrollPinSubmit").addClass("is-loading");
+      }
     }
     let enrollPinTimeout;
     function enrollPinToggle(elm){
       clearTimeout(enrollPinTimeout);
-      if ($(elm).html() == "visibility"){
-        let data = JSON.parse($('#enrollPinData').html());
-        $("#enrollPin").html(data["removalPin"]);
-        $(elm).html("visibility_off");
+      if ($(elm).text() == "visibility"){
+        let data = JSON.parse($('#userData').html());
+        $("#enrollPin").text(data["removalPin"]);
+        $(elm).text("visibility_off");
         enrollPinTimeout = setTimeout(() => {
           enrollPinClose(elm);
         }, 3000);
       }
       else{
-        $("#enrollPin").html("••••••••");
-        $(elm).html("visibility");
+        $("#enrollPin").text("••••••••");
+        $(elm).text("visibility");
       }
     }
     function enrollPinClose(elm){
@@ -511,7 +630,25 @@
       }
     }
     function enrollNameSubmit(){
-      console.log('submit: '+$('#enrollNameEditField').val());
+      $('#enrollNameSubmitBtn').addClass('is-loading');
+      let form = $('<form>', {method: "post", action: "./profile/renameEnrollment", class: "hidden"});
+      form.append(
+        $('<input>', {type: "hidden", name: "enrollNewName", value: $('#enrollNameEditField').val()})
+      );
+      $(document.body).append(form);
+      form.submit();
+    }
+    function toggleVisibility(elm){
+      event.preventDefault();
+      let visibilityIcon = elm.children[0]
+      if (visibilityIcon.innerHTML == "visibility"){
+        visibilityIcon.innerHTML = "visibility_off";
+        elm.parentElement.parentElement.children[0].children[0].setAttribute('type', 'text');
+      }
+      else{
+        visibilityIcon.innerHTML = "visibility";
+        elm.parentElement.parentElement.children[0].children[0].setAttribute('type', 'password');
+      }
     }
     function enrollEdit(){
       $('#enrollModal').addClass('is-active');
@@ -519,17 +656,32 @@
 
     /*function closeModal(elm){
       $(elm).parent().removeClass("is-active");
+      profileModalData = null;
     }*/
     function closeModalCard(elm){
       $(elm).parent().parent().parent().removeClass("is-active");
+      profileModalData = null;
     }
     function closeModalFormCard(elm){
       event.preventDefault();
       $(elm).parent().parent().parent().removeClass("is-active");
+      profileModalData = null;
     }
     function closeNotifi(elm){
       $(elm).parent().parent().animate({opacity: 0, height: 0, margin: 0, padding: 0}, 1000, () => {
         $(elm).parent().parent().remove();
+      });
+    }
+
+    function profileDelete(elm){
+      confirmModal('Delete Profile', 'Are you sure you want to delete this profile?<br>This action cannot be undone!', () => {
+        $('#confirmModal #confirmModalSubmitBtn').addClass('is-loading');
+        let form = $('<form>', {method: "post", action: "./profile/removeProfile", class: "hidden"});
+        form.append(
+          $('<input>', {type: "hidden", name: "profileCode", value: getModalProfileCode(elm)})
+        );
+        $(document.body).append(form);
+        form.submit();
       });
     }
 
@@ -538,10 +690,14 @@
       //console.log($(elm).parent().parent().parent().attr("data-profile"));
       renderModal($(elm).parent().parent().parent().attr("data-profile"), true);
       $('#profileModal').addClass('is-active');
-
     }
     function profileInfo(elm){
-      if (!$('#profileModal').hasClass('is-active')){
+      if ($(elm).attr("data-profile") == ""){
+        //notifi("is-info", "Not Implemented Yet", "This feature is not implement yet.");
+        renderModal('default', true);
+        $('#profileModal').addClass('is-active');
+      }
+      else if (!$('#profileModal').hasClass('is-active')){
         //console.log('info');
         //console.log($(elm).attr("data-profile"));
         renderModal($(elm).attr("data-profile"),false);
@@ -549,37 +705,310 @@
       }
     }
     function renderModal(profileCode, edit){
+      if (profileCode == 'default' && !edit){
+        $('#profileModal').removeClass('is-active');
+      }
       $('#profileModal #loading').removeClass('hidden');
       $('#profileModal #profileViewerButtons').addClass('hidden');
       $('#profileModal #profileViewer').addClass('hidden');
       $('#profileModal #profileEditor').addClass('hidden');
       $('#profileModal #profileEditorButtons').addClass('hidden');
       if (edit){
-        $('#profileModal .modal-card-title').html("Edit Profile");
-        setTimeout(()=> {
-          $('#profileModal #loading').addClass('hidden');
+        $('#profileModal .modal-card-title').text("Edit Profile");
+        renderModalData(profileCode).then(() => {
           $('#profileModal #profileEditor').removeClass('hidden');
           $('#profileModal #profileEditorButtons').removeClass('hidden');
-        }, 1000);
+          if (profileCode == 'default'){
+            $('#profileModal #profileEditorButtons .is-danger').addClass('hidden');
+            $('#profileModal #profileEditorButtons .is-success').text('Create New Profile');
+          }else {
+            $('#profileModal #profileEditorButtons .is-danger').removeClass('hidden');
+            $('#profileModal #profileEditorButtons .is-success').text('Save Changes');
+          }
+          $('#profileModal #loading').addClass('hidden');
+        });
       }
       else{
-        $('#profileModal .modal-card-title').html("Profile Information");
-        setTimeout(() => {
-          $('#profileModal #loading').addClass('hidden');
+        $('#profileModal .modal-card-title').text("Profile Information");
+        renderModalData(profileCode).then(() => {
           $('#profileModal #profileViewer').removeClass('hidden');
           $('#profileModal #profileViewerButtons').removeClass('hidden');
-        },1000);
+          $('#profileModal #loading').addClass('hidden');
+        });
       }
       console.log(profileCode, edit);
     }
-    function renderUI(){
-      let data = JSON.parse($('#userData').html());
-      $('#enrollName').html(data.enrollName);
-      $('#enrollNameEditField').val(data.enrollName);
-      $('#enrollCode').html(data.enrollCode);
-      $('#enrollLastUpdated').html(new Date(data.lastUpdated).toLocaleString());
+    let profileModalData;
+    function renderModalData(profileCode){
+      $('#profileModal').attr('data-profileCode', profileCode);
+      return fetch("../api/v1/profile/"+profileCode, {cache: "no-cache"}).then(parseResponse).then((data) => {
+        profileModalData = data;
+        console.dir(data);
+        $("#profileModal #profileName").text(data.name);
+        renderModalStatus(data);
+        $("#profileModal #profileDay").text(parseDays(data.enforceDays));
+        $("#profileModal #profileTime").text(parseTime(data.enforceTime));
+        $("#profileModal #profileLastUpdated").text(new Date(data.lastUpdated).toLocaleString());
+        $("#profileBlockedSites").children().remove();
+        data.blockedSites.forEach((site) => {
+          $("#profileBlockedSites").append($('<input>',{class: "blocked-site-entry input", readOnly: true, value: site}));
+        });
+        $("#profileModal #profileNameEdit").val(data.name);
+        $("#profileModal #profileStateEdit #editState").each(function(){ this.checked = data.enabled;});
+        console.dir($("#profileModal #profileDayEdit .checkboxes").children());
+        $("#profileModal #profileDayEdit .checkboxes").children().each(function(){ this.children[0].checked = false;});
+        const profileEditDayElmIds = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+        data.enforceDays.split('').forEach((day) => {
+          $("#profileModal #profileDayEdit .checkboxes label #edit"+profileEditDayElmIds[parseInt(day)]).each(function(){ this.checked = true; });
+        });
+        $("#profileModal #editTimeStart").val(data.enforceTime.start);
+        $("#profileModal #editTimeEnd").val(data.enforceTime.end);
+        $('#profileModal #firstBox').val("")
+        $("#profileModal .blocked-sites-container").children().not(".field").remove();
+        data.blockedSites.forEach((site) => {
+          createNewInput(site);
+        });
+        // TODO: update jquery
 
+      }).catch(handleError);
     }
-    renderUI();
+    function renderModalStatus(data){
+      console.log("render");
+      console.dir(data);
+      let profileStatus = "Enabled";
+      if(!data.enabled){
+        profileStatus = "Disabled"
+      }
+      else{
+        if (checkActive(data.enforceDays,data.enforceTime)){
+          profileStatus += ", Active"
+        }
+        else{
+          profileStatus += ", Inactive"
+        }
+      }
+      $("#profileModal #profileStatus").text(profileStatus);
+    }
+    function getModalProfileCode(elm){
+      return $(elm).parents().eq(3).attr('data-profileCode');
+    }
+
+    function checkActive(enforceDays, enrollTime){
+      let [startHour, startMin] = enrollTime.start.split(":");
+      let [endHour, endMin] = enrollTime.end.split(":");
+      let d = new Date();
+      if (enforceDays.includes(d.getDay())){
+        if (enrollTime.start == enrollTime.end){
+          return true;
+        }
+        let secondsNowSince2400 = ((d.getHours()*3600) + (d.getMinutes()*60));
+        let secondsStartSince2400 = ((startHour*3600) + (startMin*60));
+        let secondsEndSince2400 = ((endHour*3600) + (endMin*60));
+        if (secondsStartSince2400 >= secondsEndSince2400){
+          secondsEndSince2400 += 86400;//Overnight profile. Add 24hrs
+        }
+        return ((secondsStartSince2400 <= secondsNowSince2400) && (secondsEndSince2400 > secondsNowSince2400))
+
+      }
+      else {
+        return false
+      }
+    }
+    function parseTime(enrollTime){
+      if (enrollTime.start == enrollTime.end){
+        return "24/7";
+      }
+      else{
+        return enrollTime.start + " - " + enrollTime.end;
+      }
+    }
+    function parseDays(enforceDays){
+      let days = enforceDays.split('').sort().join('');
+      if (days == "0123456"){
+        return "Everyday";
+      }
+      else if (days == "12345"){
+        return "Weekdays";
+      }
+      else if (days == "06") {
+        return "Weekends";
+      }
+      else{
+        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        return days.split('').map(char => daysOfWeek[parseInt(char)]).join(', ');
+      }
+    }
+
+
+
+
+
+    /*START NEW CODE*/
+    function forceNewInput(){
+      const input = $('#firstBox');
+      if (input.val().trim() !== '') {
+        if (checkSafeUrl(input.val())){
+          createNewInput(input.val());
+          input.val("");
+        }
+        else{
+          notifi('is-warning','Bad Site', 'You cannot add this site as it will prevent IgniteDMA from updating itself!')
+        }
+      }
+    }
+
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        forceNewInput();
+      }
+    }
+
+    function checkSafeUrl(url){
+      //Checks if the URL given is not the update host of the extension
+      return !(url == "com" || url == ".com" || url == "mooo.com" || url == ".mooo.com" || url == "ignitedma.mooo.com")
+    }
+
+    function validateInputEvent(event) {
+      let input = event.target;
+      // Replace newline characters with new entries
+      if (input.value.includes(' ')) {
+        let values = input.value.split(' ');
+        input.value = validateInput(values[0]);
+        values.forEach((site, i) => {
+          if (i !== 0 && site.trim() !== ''){
+            createNewInput(validateInput(site));
+          }
+        });
+      }
+      else{
+        input.value = validateInput(input.value)
+      }
+      if (!checkSafeUrl(input.value)){
+        $(input).addClass('is-danger');
+      }
+      else{
+        $(input).removeClass('is-danger');
+      }
+      //updateBlockedSitesList();
+    }
+
+    function validateInput(input){
+      const validPattern = /^[a-z0-9.]*$/;
+      input = input.toLowerCase(); // Convert to lowercase
+      if (!validPattern.test(input)) {
+          return input.replace(/[^a-z0-9.]/g, '');
+      }
+      return input;
+    }
+
+    function createNewInput(value) {
+      let container = $(".blocked-sites-container");
+      let wrapper = $('<div>', {class: "blocked-site-wrapper"});
+      let newInput = $('<input>', {class: "blocked-site-input input", value: value, type: 'text'});
+      newInput.on('keypress', handleKeyPress);
+      newInput.on('input', validateInputEvent);
+      if (!checkSafeUrl(value)){
+        newInput.addClass('is-danger');
+      }
+      let removeBtn = $('<button>', {class: "remove-btn"});
+      removeBtn.on('click', (event) => {
+        event.preventDefault();
+        $(event.target).parent().remove();
+      });
+      wrapper.append(newInput);
+      wrapper.append(removeBtn);
+      container.append(wrapper);
+    }
+
+    function preventFormSubmit(event){
+      if (event.key === 'Enter') {
+          event.preventDefault();
+      }
+    }
+
+    function formSubmit(event){
+      $("#profileEditorButtons .is-success").addClass('is-loading');
+      let abortFormSubmit;
+      urlList = $(".blocked-sites-container").find("input").map(function(i, elm) {
+        if (checkSafeUrl($(elm).val())){
+          return $(elm).val();
+        }
+        else {
+          abortFormSubmit = true;
+        }
+      }).get();
+      console.log(urlList);
+      if (abortFormSubmit){
+        event.preventDefault();
+        notifi('is-warning','Bad Sites','The red-highlighted sites entered under `Blocked Site` cannot be added as blocking that site will prevent IgniteDMA from updating itself. Please remove them before saving.');
+        $("#profileEditorButtons .is-success").removeClass('is-loading');
+      }
+      else{
+        $("#blockedSitesList").text(urlList.join('\n'));
+        $("#profileFormCode").val($('#profileModal').attr('data-profileCode'));
+        $("#profileFormType").val(profileModalData.type);
+        $("#profileFormLastUpdated").val(profileModalData.lastUpdated);
+        //Last Updated sent so that server can check if profile was edited from
+        //another computer while user was editiing. Resulting in 2 diffrent versions
+      }
+    }
+
+    /*END NEW CODE*/
+
+
+
+
+    function renderUI(){
+      let now = new Date();
+      if (now.getHours() >= 18){
+        $('#greeting').text("Good Evening!");
+      }
+      else if (now.getHours() >= 12) {
+        $('#greeting').text("Good Afternoon!");
+      }
+      else{
+        $('#greeting').text("Good Morning!");
+      }
+
+
+      let data = JSON.parse($('#userData').html());
+      $('#enrollName').text(data.enrollName);
+      $('#enrollNameEditField').val(data.enrollName);
+      $('#enrollCode').text(data.enrollCode.toUpperCase());
+      $('#enrollLastUpdated').text(new Date(data.lastUpdated).toLocaleString());
+      $(".profileContainer").children().not('.profilePlaceholder').remove();
+      Object.entries(data.profiles).forEach(([profileCode,profileData]) => {
+        let profileBox = $(".profilePlaceholder").first().clone().removeClass('profilePlaceholder');
+        profileBox.attr("data-profile", profileCode);
+        profileBox.find('.addIcon').remove();
+        profileBox.find('.profileInfo .title').text(profileData.name);
+        profileBox.find('.profileInfo .subtitle').html(parseDays(profileData.enforceDays)+"<br>"+parseTime(profileData.enforceTime));
+        if (!profileData.enabled){
+          profileBox.find('.profileBottom .is-success').addClass('hidden');
+          profileBox.find('.profileBottom .is-danger').removeClass('hidden');
+        }
+        else if (!checkActive(profileData.enforceDays, profileData.enforceTime)) {
+          profileBox.find('.profileBottom .is-success').addClass('hidden');
+          profileBox.find('.profileBottom .is-warning').removeClass('hidden');
+        }
+        $(".profileContainer").prepend(profileBox);
+      });
+    }
+
+    function updateUIloop(){
+      renderUI()
+      if (profileModalData){
+        renderModalStatus(profileModalData);
+      }
+      let now = new Date();
+      let delay = (61 - now.getSeconds()) * 1000;//Runs every minute + 1 second delay just in case
+      return setTimeout(updateUIloop,delay);
+    }
+
+    $(document).ready(() => {
+      updateUIloop();
+    });
   </script>
 {% endblock %}

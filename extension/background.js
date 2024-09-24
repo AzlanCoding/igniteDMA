@@ -6,6 +6,7 @@ let activeBlockedSites;//Will be an Map but currently null
 let activeProfiles;//Will be an Map but currently null
 //set as null so that areMapsEqual will return false
 //Forces enforceBlockedSites to run on startup.
+//// TODO: migrate activeProfiles to chrome.storage.session
 
 function areMapsEqual(map1, map2) {
   if (map1 == null || map2 == null){
@@ -22,26 +23,14 @@ function areMapsEqual(map1, map2) {
   return true;
 }
 
-
-
-
 function checkProfileActive(data){
-  // TODO: Check if it will work with overnight timing
-  let d = new Date();
-  if ((data.startHour == data.endHour) && (data.startMin == data.endMin) && (data.enforceDays.includes(d.getDay()))){
-    return true;
-  }
-  let secondsNowSince2400 = ((d.getHours()*3600) + (d.getMinutes()*60));
-  let secondsStartSince2400 = ((data.startHour*3600) + (data.startMin*60));
-  let secondsEndSince2400 = ((data.endHour*3600) + (data.endMin*60));
-  return ((data.enforceDays.includes(d.getDay())) && ((secondsStartSince2400 <= secondsNowSince2400) && (secondsEndSince2400 > secondsNowSince2400)))
-}
-/*function checkProfileActive(enforceDays, enrollTime){
-  let [startHour, startMin] = enrollTime.start.split(":");
-  let [endHour, endMin] = enrollTime.end.split(":");
+  console.dir(data);
+  let enforceDays = data.enforceDays
+  let [startHour, startMin] = data.enforceTime.start.split(":");
+  let [endHour, endMin] = data.enforceTime.end.split(":");
   let d = new Date();
   if (enforceDays.includes(d.getDay())){
-    if (enrollTime.start == enrollTime.end){
+    if (data.enforceTime.start == data.enforceTime.end){
       return true;
     }
     let secondsNowSince2400 = ((d.getHours()*3600) + (d.getMinutes()*60));
@@ -51,12 +40,11 @@ function checkProfileActive(data){
       secondsEndSince2400 += 86400;//Overnight profile. Add 24hrs
     }
     return ((secondsStartSince2400 <= secondsNowSince2400) && (secondsEndSince2400 > secondsNowSince2400))
-
   }
   else {
     return false
   }
-}*/
+}
 
 function enforceBlockedSites(data){
   console.log("Enforcing new blockedSites");
@@ -89,7 +77,7 @@ function enforceBlockedSites(data){
         id: index + 1,
         priority: 1,
         action: { type: "redirect", "redirect": { "url": (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(data.get(site))+"&site="+encodeURI(site)) } },
-        condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
+        condition: { urlFilter: "||"+site+"/", resourceTypes: ["main_frame", "sub_frame"] }
       }));
     }
     chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
@@ -139,92 +127,104 @@ function enforceBlockedSites(data){
 
 function setBlockedSites(){
   console.log("checking blocked sites changes");
-  return getClasses().then((classList) => {
+  return getClasses("webfilterV1").then((classList) => {
     let blockedSitesCache = new Map();
     let activeProfilesCache = new Map();
     Object.entries(classList).forEach(([classId, data]) => {
       if (checkProfileActive(data)){
-        activeProfilesCache.set(classId, data.className);
-        data.blockedSites.forEach((site) => {blockedSitesCache.set(site, data.className)});
+        activeProfilesCache.set(classId, data.name);
+        data.blockedSites.forEach((site) => {blockedSitesCache.set(site, data.name)});
       }
       else{
-        console.log("class "+data.className+" is not active.");
+        console.log("profile "+data.name+" is not active.");
       }
     });
     if (!areMapsEqual(activeProfilesCache, activeProfiles)){
       activeProfiles = activeProfilesCache;
     }
     if (!areMapsEqual(blockedSitesCache,activeBlockedSites)){
+      console.log("activeBlockedSites Set!")
       activeBlockedSites = blockedSitesCache;
       return enforceBlockedSites(blockedSitesCache);
     }
   });
 }
 
-function getUpdates(classId){
-  return fetch(updateHost+"/api/v0/getClass/"+classId, {cache: "no-cache"}).then(x => x.json()).then((data) => {
-    data.lastUpdateReceive = new Date().getTime();
-    data.lastUpdateFetch = new Date().getTime();
-    //lastUpdateReceive is the last time the extension updated the profile.
-    //lastUpdateFetch is the last time the extension checked for updates on the profile.
-    let save = new Object();
-    save["class"+classId] = data;
-    return chrome.storage.sync.set(save).then(() => {
-      console.log("Class "+classId+" is updated");
-    });
+function filterProfileTypes(data, filter){
+  if (filter == undefined){
+    filter = "";
+  }
+  return Object.keys(data).reduce(function(accumulator, currentProfile) {
+    if (data[currentProfile].type.includes(filter) && data[currentProfile].enabled == true){
+      accumulator[currentProfile] = data[currentProfile]
+    }
+    return accumulator;
+  }, {});
+}
+
+
+function getClasses(type){// TODO: Rename to getProfiles
+  // TODO: Set profile type
+  return chrome.storage.sync.get("enrollData").then((result) => {
+    return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
   });
 }
 
 
-function checkUpdate(classId){
-  let classKey = "class"+classId;
-  return chrome.storage.sync.get([classKey]).then((result) => {
-    return fetch(updateHost+"/api/v0/findClass/"+classId, {cache: "no-cache"}).then((response) => {
+
+function updateEnrollData(enrollCode){
+  return chrome.storage.sync.get("enrollData").then((result) => {
+    return fetch(updateHost+"/api/v1/enrollment/"+enrollCode.toLowerCase(), {cache: "no-cache"}).then((response) => {
       if (response.ok){
         return response.json();
       }
       else if (response.status == 404){
-        throw new Error("Cannot find profile!\nPlease press the `Delete Profile` button.\nStatus code: "+response.status);
+        throw new Error("Cannot find profile!\nPlease press the `Delete Profile` button.<br>Status code: "+response.status);
         //// TODO: Make popup to decide whether to remove profile
       }
       else {
-        throw new Error("ok something just went like REALLY WRONG. Status Code: " + response.status);
-        //// TODO: Show this image: https://http.cat/500.jpg
+        throw new Error("ok something just went like REALLY WRONG.<br>Status Code: " + response.status);
       }
     }).then((data) => {
-      if ((data.forceUpdateNow) || (data.lastUpdated > result["class"+classId].lastUpdateReceive)){
-        return getUpdates(classId);
+      /*if ((!result.enrollData) || (data.lastUpdated > result.enrollData.lastUpdateFetch)){
+        data.lastSync = new Date().getTime();
+        data.lastUpdateFetch = new Date().getTime();
+        let save = new Object();
+        save.enrollData = data;
+        return chrome.storage.sync.set(save);
       }
       else{
-        result["class"+classId].lastUpdateFetch = new Date().getTime();
+        result.enrollData.lastSync = new Date().getTime();
         return chrome.storage.sync.set(result);
+      }*/
+      data.lastSync = new Date().getTime();
+      //data.lastUpdateFetch = new Date().getTime();
+      let save = new Object();
+      save.enrollData = data;
+      return chrome.storage.sync.set(save);
+    }).catch((e) => {
+      if (e.message.includes("Failed to fetch")){
+        throw new Error("Unable to contact server");
+      }
+      else{
+        throw e;
       }
     });
   });
 }
 
-function getClasses(){
-  return chrome.storage.sync.get().then((result) => {
-    return Object.keys(result)
-      .filter(key => key.startsWith('class'))
-      .reduce((obj, key) => {
-        let newKey = key.replace(/^class/, '')
-        obj[newKey] = result[key];
-        return obj;
-      }, {});
-  });
-}
 
-function syncProfiles(){
-  return getClasses().then((classList) => {
-    let promises = Object.entries(classList).map(([classId, data]) => {
-      return checkUpdate(classId);
-      //// NOTE: Profiles with the same time enforce will
-      ////       be active at the same time.
-    });
-    return Promise.all(promises);
+function syncProfiles(){// TODO: Rename to syncEnrollment
+  return chrome.storage.sync.get("enrollData").then((result) => {
+    if (result.enrollData){
+      return updateEnrollData(result.enrollData.enrollCode)
+    }
+    /*else {
+      throw new Error("No enrollData to start sync!")
+    }*/
   }).then(setBlockedSites);
 }
+
 
 function setBlockedSitesLoop(){
   return setBlockedSites().then(() => {
@@ -407,7 +407,7 @@ function fileAccessSchemeCheck(){
 }
 
 function checkPermissions() {
-  console.log(WindowTopRuleData.windowId);
+  //console.log(WindowTopRuleData.windowId);
   return chrome.permissions.contains({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
     if (result) {
       if (useLegacyBlocking){
@@ -431,24 +431,44 @@ function checkPermissions() {
 }
 
 
-export function addClass(className){
-  return getUpdates(className).then(setBlockedSites);
+
+function addEnrollment(enrollCode){
+  return updateEnrollData(enrollCode).then(setBlockedSites);
 }
 
-/*export function removeClass(className){
-  return chrome.storage.sync.remove(className).then(setBlockedSites);
+/*function removeEnrollment(){
+  return chrome.storage.sync.clear().then(setBlockedSites);
 }*/
 
-export function removeClass(){
-  return chrome.storage.sync.clear().then(setBlockedSites);
-}
-
-export function getUpdateHost(){
-  return updateHost;
-}
-
-export function syncNow(){
+function syncNow(){
   return syncProfiles();
+}
+
+function removeEnrollment(headers){
+  return fetch(updateHost+"/api/v1/masterPin",{cache: "no-cache", method:"post", headers: headers}).then((response) => {
+    if (response.ok) {
+      return response.blob().then((data) => {
+        return verifyMagicPacket(data).then((outcome) => {
+          if (outcome){
+            return chrome.storage.sync.clear().then(setBlockedSites);
+          }
+          else{
+            throw new Error("Failed to Verify Server's Identity!");
+          }
+        });
+      });
+    }
+    else {
+      throw new Error("Incorrect PIN");
+    }
+  }).catch((e) => {
+    if (e.message.includes("Failed to fetch")){
+      throw new Error("Unable to contact server");
+    }
+    else{
+      throw e;
+    }
+  });
 }
 
 //The function below is used to verify the main server's identity
@@ -456,8 +476,7 @@ export function syncNow(){
 //to remove the enrollment. A secret file is sent to the client and
 //the checksum of the file is measured to verify that the server
 //contacted is indeed the real server.
-//Function has not been Implemented yet
-/*export function verifyMagicPacket(blob){
+function verifyMagicPacket(blob){
   return blob.arrayBuffer().then((dataBuffer) => {
     return crypto.subtle.digest('SHA-256', dataBuffer).then((hashBuffer) => {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -467,16 +486,40 @@ export function syncNow(){
     });
   });
 }
-*/
+
+function handleExternalAction(sendResponse, func, args){
+  func(args).then((response) => {
+    sendResponse({isErr: false, data: response});
+  }).catch((e) => {
+    sendResponse({isErr: true, data: e.message});
+  });
+}
+
 
 if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ == '__main__':` in python
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request === 'getBlockedSites') {
+      console.dir(activeBlockedSites);
       sendResponse(Object.fromEntries(activeBlockedSites));
     }
-    if (request === 'fileAccessSchemeExtPageSwitch') {
+    else if (request === 'fileAccessSchemeExtPageSwitch') {
       fileAccessSchemeExtPageSwitch();
       sendResponse(true);
+    }
+    else if (request.action == 'syncNow'){
+      handleExternalAction(sendResponse, syncNow);
+      return true;
+    }
+    else if (request.action == 'rmvEnroll') {
+      handleExternalAction(sendResponse, removeEnrollment, request.headers);
+      return true;
+    }
+    else if (request.action == 'addEnroll' && request.enrollCode){
+      handleExternalAction(sendResponse, addEnrollment, request.enrollCode);
+      return true;
+    }
+    else{
+      sendResponse(true);//Should not happen but idk lol
     }
   });
 
