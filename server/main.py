@@ -30,7 +30,7 @@ def profile_post():
             abort(400)#Insufficient form data
 
     enrollData = Loader.loadEnrollmentRaw(current_user.enrollId)
-    if ((request.form.get("profileCode") == 'default') or (not request.form.get("profileCode") in enrollData['profiles'])):
+    if not ((request.form.get("profileCode") == 'default') or (request.form.get("profileCode") in enrollData['profiles'])):
         abort(403)#User has no access to edit the profile
 
     if not Checker.checkNewProfileValidity(request.form.get("profileCode"), request.form.get("profileLastUpdated")):
