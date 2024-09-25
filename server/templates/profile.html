@@ -428,8 +428,6 @@
           <input type="text" style="display: none" id="profileFormCode" name="profileCode" hidden></input>
           <input type="number" style="display: none" id="profileFormLastUpdated" name="profileLastUpdated" hidden></input>
           <input type="text" style="display: none" id="profileFormType" name="profileType" hidden></input>
-          <!--button class="button is-success" id="saveProfile" type="submit" onclick="updateBlockedSitesList();if(document.getElementById('editProfile').reportValidity()){this.classList.add('is-loading');}">Save Changes</button>
-          <button class="button is-danger" id="uneditProfile" onclick="if(confirm('Discard changes?')){renderUI(false);}event.preventDefault();">Cancel</button-->
         </form>
       </section>
       <footer class="modal-card-foot">
@@ -846,10 +844,11 @@
     /*START NEW CODE*/
     function forceNewInput(){
       const input = $('#firstBox');
-      if (input.val().trim() !== '') {
-        if (checkSafeUrl(input.val())){
-          createNewInput(input.val());
+      let value = input.val().trim();
+      if (value !== '') {
+        if (checkSafeUrl(value)){
           input.val("");
+          createNewInput(value);
         }
         else{
           notifi('is-warning','Bad Site', 'You cannot add this site as it will prevent IgniteDMA from updating itself!')
@@ -870,6 +869,23 @@
       return !(url == "com" || url == ".com" || url == "mooo.com" || url == ".mooo.com" || url == "ignitedma.mooo.com")
     }
 
+    function checkDuplicateSites(){
+      let siteList = new Array();
+      $(".blocked-sites-container").find("input").each((i, elm) => {
+        let value = $(elm).val()
+        if (siteList.includes(value)){
+          $(".blocked-sites-container").find("input").filter((i,elm) => {
+             return elm.value == value;
+          }).addClass('is-warning');
+        }
+        else{
+          siteList.push(value);
+          $(elm).removeClass('is-warning');
+        }
+      });
+
+    }
+
     function validateInputEvent(event) {
       let input = event.target;
       // Replace newline characters with new entries
@@ -885,6 +901,7 @@
       else{
         input.value = validateInput(input.value)
       }
+      checkDuplicateSites()
       if (!checkSafeUrl(input.value)){
         $(input).addClass('is-danger');
       }
@@ -916,10 +933,12 @@
       removeBtn.on('click', (event) => {
         event.preventDefault();
         $(event.target).parent().remove();
+        checkDuplicateSites();
       });
       wrapper.append(newInput);
       wrapper.append(removeBtn);
       container.append(wrapper);
+      checkDuplicateSites();
     }
 
     function preventFormSubmit(event){

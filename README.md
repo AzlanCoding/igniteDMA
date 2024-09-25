@@ -68,16 +68,16 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Server (`profile.html`): Add Nav Bar (Relink to `base.html`)
 - [x] Server: Create delete profile option
 - [x] Extension: Implement Verify Magic Packet to prevent server impersonation. (Students might fork server and bypass through DNS hijack)
+- [x] Extension (`popup.html`): Only allow one `options.html` page to be visible at all times.
 - [x] Extension: Support for multiple profiles
-- [ ] Server (`profile.html`): Highlight repeated URLs
-- [ ] Extension (`background.js`): Show error notification when it fails to contact Server (Implement logs section)
-- [ ] Github Pages for this project (docs).
+- [x] Server (`profile.html`): Highlight repeated URLs
+- [ ] Extension (`background.js`): Show error notification when it fails to contact Server (Implement logs modal)
+- [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
 - [ ] Server: Create delete enrollment option
 - [ ] Extension: Publish to Chrome Web Store (Maybe?)
-- [ ] Extension (`popup.html`): Only allow one `options.html` page to be visible at all times.
 - [ ] Server: Code cleanup
 - [ ] App Icon
-- [ ] Server: Create reset profile password feature?
+- [ ] Server: Create reset profile password feature
 - [ ] Extension: Detect use of [pillow](https://github.com/S1monlol/pillow)
 - [ ] Extension: Find a way around `declarativeNetRequest` 5000 rule limit

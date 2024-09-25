@@ -51,7 +51,7 @@ def profile_post():
             "start": request.form.get("editTimeStart"),
             "end": request.form.get("editTimeEnd")
         },
-        "blockedSites": list(filter(lambda url: url != "",request.form.get("blockedSitesList").split("\r\n")))
+        "blockedSites": list(set(filter(lambda url: url != "",request.form.get("blockedSitesList").split("\r\n"))))
     }
 
     if request.form.get("profileCode") == 'default':
@@ -61,10 +61,10 @@ def profile_post():
             newProfileCode = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
         Setter.saveProfile(newProfileCode, data)
         enrollData["profiles"].append(newProfileCode)
-        Setter.saveEnroll(current_user.enrollId, enrollData)
+        Setter.saveEnroll(current_user.enrollId, enrollData)#Update last modified
         flash("New profile created successfully!")
     else:
-        Setter.saveEnroll(enrollData)#Update last modified
+        Setter.saveEnroll(current_user.enrollId, enrollData)#Update last modified
         Setter.saveProfile(request.form.get("profileCode"), data);
         flash("Profile updated successfully!")
 

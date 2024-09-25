@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ignite DMA",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "author": "AzlanCoding",
   "description": "A Device Manager Application (DMA) for students under MOE",
   "homepage_url": "https://ignitedma.mooo.com/",

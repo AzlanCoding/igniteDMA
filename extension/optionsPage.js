@@ -1,3 +1,19 @@
+function checkAlreadyOpened() {
+  chrome.tabs.query({url: chrome.runtime.getURL("options.html")}, function(tabs) {
+    if (tabs.length > 1) {
+      chrome.tabs.getCurrent((currentTab) => {
+        let tabs = tabs.filter(tab => tab.id !== currentTab.id);
+        chrome.windows.update(tabs[0].windowId, {focused: true}, () => {
+          chrome.tabs.update(tabs[0].id, {active: true}, () => {
+            window.close();
+          });
+        });
+      });
+    }
+  });
+}
+checkAlreadyOpened();
+
 /*Page Utilities*/
 let enrollData;
 function loadData(){
