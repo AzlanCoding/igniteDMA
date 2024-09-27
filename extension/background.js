@@ -8,6 +8,7 @@ let activeProfiles;//Will be an Map but currently null
 //Forces enforceBlockedSites to run on startup.
 //// TODO: migrate activeProfiles to chrome.storage.session
 
+/*---Catagory 1 Utilities---*/
 function areMapsEqual(map1, map2) {
   if (map1 == null || map2 == null){
     return false;
@@ -23,6 +24,7 @@ function areMapsEqual(map1, map2) {
   return true;
 }
 
+/*---Catagory 2 Utilities---*/
 function checkProfileActive(data){
   console.dir(data);
   let enforceDays = data.enforceDays
@@ -45,11 +47,84 @@ function checkProfileActive(data){
     return false
   }
 }
+function filterProfileTypes(data, filter){
+  if (filter == undefined){
+    filter = "";
+  }
+  return Object.keys(data).reduce(function(accumulator, currentProfile) {
+    if (data[currentProfile].type.includes(filter) && data[currentProfile].enabled == true){
+      accumulator[currentProfile] = data[currentProfile]
+    }
+    return accumulator;
+  }, {});
+}
+function checkSafeUrl(url){
+  //Checks if the URL given is not the update host of the extension
+  return !(url == "com" || url == ".com" || url == "mooo.com" || url == ".mooo.com" || url == "ignitedma.mooo.com")
+}
 
+/*---Catagory 3 Utilities---*/
+function getClasses(type){// TODO: Rename to getProfiles
+  // TODO: Set profile type
+  return chrome.storage.sync.get("enrollData").then((result) => {
+    return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
+  });
+}
+function setBlockedSites(){
+  console.log("checking blocked sites changes");
+  return getClasses("webfilterV1").then((classList) => {
+    let blockedSitesCache = new Map();
+    let activeProfilesCache = new Map();
+    Object.entries(classList).forEach(([classId, data]) => {
+      if (checkProfileActive(data)){
+        activeProfilesCache.set(classId, data.name);
+        data.blockedSites.forEach((site) => {
+          blockedSitesCache.set(site, data.name)
+          /*if (checkSafeUrl(site)){
+          }
+          else{
+            console.warn("Skipping "+site+" as it is an unsafe URL.")
+          }*/
+        });
+      }
+      else{
+        console.log("profile "+data.name+" is not active.");
+      }
+    });
+    if (!areMapsEqual(activeProfilesCache, activeProfiles)){
+      activeProfiles = activeProfilesCache;
+    }
+    if (!areMapsEqual(blockedSitesCache,activeBlockedSites)){
+      console.log("activeBlockedSites Set!")
+      activeBlockedSites = blockedSitesCache;
+      return enforceBlockedSites(blockedSitesCache);
+    }
+  });
+}
+function syncProfiles(){// TODO: Rename to syncEnrollment
+  return chrome.storage.sync.get("enrollData").then((result) => {
+    if (result.enrollData){
+      return updateEnrollData(result.enrollData.enrollCode)
+    }
+    /*else {
+      throw new Error("No enrollData to start sync!")
+    }*/
+  }).then(setBlockedSites);
+}
+function setBlockedSitesLoop(){
+  return setBlockedSites().then(() => {
+    let now = new Date();
+    let delay = (61 - now.getSeconds()) * 1000;//Runs every minute + 1 second delay just in case
+    return setTimeout(setBlockedSitesLoop,delay)
+  });
+}
+
+/*---Catagory 4 Utilities---*/
 function enforceBlockedSites(data){
   console.log("Enforcing new blockedSites");
   let blockedSites = Array.from(data.keys());
   if (blockedSites.length == 0){
+    //Remove all rules
     return chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
       const oldRuleIds = oldRules.map(rule => rule.id);
       chrome.declarativeNetRequest.updateDynamicRules({
@@ -63,22 +138,45 @@ function enforceBlockedSites(data){
     //The setting "site access" is usually set to "on all sites" by default.
     //So, if students change it, the webfilter will not work.
     //Therefore, legacyBlocking is used when this setting is not avaliable.
+    // NOTE: priority set to 2 for future whiteLists
     let newrules;
     if (useLegacyBlocking){
-      newrules = blockedSites.map((site, index) => ({
-        id: index + 1,
-        priority: 1,
-        action: { type: "block" },
-        condition: { urlFilter: site, resourceTypes: ["main_frame", "sub_frame"] }
-      }));
+      newrules = blockedSites.reduce((accumulator, site, index) => {
+        if (index == 1){
+          accumulator = new Array();
+        }
+        if(checkSafeUrl(site)){
+          accumulator.push({
+            id: index + 1,
+            priority: 2,
+            action: { type: "block" },
+            condition: { urlFilter: "||"+site+"/", resourceTypes: ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "object", "xmlhttprequest", "ping", "csp_report", "media", "websocket", "webtransport", "webbundle", "other"] }
+          })
+        }
+        else {
+          console.warn("Ignoring site "+site+" as it is not safe.");
+        }
+        return accumulator
+      });
     }
     else{
-      newrules = blockedSites.map((site, index) => ({
-        id: index + 1,
-        priority: 1,
-        action: { type: "redirect", "redirect": { "url": (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(data.get(site))+"&site="+encodeURI(site)) } },
-        condition: { urlFilter: "||"+site+"/", resourceTypes: ["main_frame", "sub_frame"] }
-      }));
+      newrules = blockedSites.reduce((accumulator, site, index) => {
+        if (index == 1){
+          accumulator = new Array();
+        }
+        if(checkSafeUrl(site)){
+          accumulator.push({
+              id: index,
+              priority: 2,
+              action: { type: "redirect", "redirect": { "url": (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(data.get(site))+"&site="+encodeURI(site)) } },
+              condition: { urlFilter: "||"+site+"/", resourceTypes: ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "object", "xmlhttprequest", "ping", "csp_report", "media", "websocket", "webtransport", "webbundle", "other"] }
+            });
+        }
+        else {
+          console.warn("Ignoring site "+site+" as it is not safe.");
+        }
+        return accumulator;
+      });
     }
     chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
       const oldRuleIds = oldRules.map(rule => rule.id);
@@ -87,7 +185,7 @@ function enforceBlockedSites(data){
         addRules: newrules
       });
     });
-    //Check for any existing tabs open
+    //Check for tabs open for any blocked sites
     return chrome.tabs.query({}, (tabs) => {
       let promises = tabs.map(tab => {
         return chrome.scripting.executeScript({
@@ -124,54 +222,6 @@ function enforceBlockedSites(data){
     });
   }
 }
-
-function setBlockedSites(){
-  console.log("checking blocked sites changes");
-  return getClasses("webfilterV1").then((classList) => {
-    let blockedSitesCache = new Map();
-    let activeProfilesCache = new Map();
-    Object.entries(classList).forEach(([classId, data]) => {
-      if (checkProfileActive(data)){
-        activeProfilesCache.set(classId, data.name);
-        data.blockedSites.forEach((site) => {blockedSitesCache.set(site, data.name)});
-      }
-      else{
-        console.log("profile "+data.name+" is not active.");
-      }
-    });
-    if (!areMapsEqual(activeProfilesCache, activeProfiles)){
-      activeProfiles = activeProfilesCache;
-    }
-    if (!areMapsEqual(blockedSitesCache,activeBlockedSites)){
-      console.log("activeBlockedSites Set!")
-      activeBlockedSites = blockedSitesCache;
-      return enforceBlockedSites(blockedSitesCache);
-    }
-  });
-}
-
-function filterProfileTypes(data, filter){
-  if (filter == undefined){
-    filter = "";
-  }
-  return Object.keys(data).reduce(function(accumulator, currentProfile) {
-    if (data[currentProfile].type.includes(filter) && data[currentProfile].enabled == true){
-      accumulator[currentProfile] = data[currentProfile]
-    }
-    return accumulator;
-  }, {});
-}
-
-
-function getClasses(type){// TODO: Rename to getProfiles
-  // TODO: Set profile type
-  return chrome.storage.sync.get("enrollData").then((result) => {
-    return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
-  });
-}
-
-
-
 function updateEnrollData(enrollCode){
   return chrome.storage.sync.get("enrollData").then((result) => {
     return fetch(updateHost+"/api/v1/enrollment/"+enrollCode.toLowerCase(), {cache: "no-cache"}).then((response) => {
@@ -214,29 +264,8 @@ function updateEnrollData(enrollCode){
 }
 
 
-function syncProfiles(){// TODO: Rename to syncEnrollment
-  return chrome.storage.sync.get("enrollData").then((result) => {
-    if (result.enrollData){
-      return updateEnrollData(result.enrollData.enrollCode)
-    }
-    /*else {
-      throw new Error("No enrollData to start sync!")
-    }*/
-  }).then(setBlockedSites);
-}
 
-
-function setBlockedSitesLoop(){
-  return setBlockedSites().then(() => {
-    let now = new Date();
-    let delay = (61 - now.getSeconds()) * 1000;//Runs every minute + 1 second delay just in case
-    return setTimeout(setBlockedSitesLoop,delay)
-  });
-}
-
-
-
-
+/*---Blocking Window Utilities---*/
 let WindowTopRuleData = {
   windowId: null,
   url: null,
@@ -246,7 +275,6 @@ let fileAccessSchemeExtPage = false;
 function fileAccessSchemeExtPageSwitch(){
   fileAccessSchemeExtPage = true;
 }
-
 function blockingWindow(url, callback){
   console.log("blockingWindow launched");
   return chrome.windows.create({
@@ -327,9 +355,8 @@ function relaunchClosedEnforceWindow(windowId) {
     }*/
   }
 }
-
 function updateWindowTopRule(url){
-  console.log("updateCalled");
+  //console.log("updateCalled");
   return blockingWindow(url, (window) => {
     WindowTopRuleData = {
       windowId: window.id,
@@ -338,11 +365,8 @@ function updateWindowTopRule(url){
     };
   });
 }
-
-
-
 function setWindowTopRule(url){
-  console.log("windowSet")
+  //console.log("windowSet")
   if (url != WindowTopRuleData.url){
     return blockingWindow(url, (window) => {
       /*if (WindowTopRuleData.windowId != null){
@@ -356,12 +380,10 @@ function setWindowTopRule(url){
       enforceWindowTopRule();
     });
   }
-  else{
+  /*else{
     console.log("rule already enforcing");
-  }
+  }*/
 }
-
-
 function enforceWindowTopRule(){
   if (WindowTopRuleData.url == chrome.runtime.getURL("fileAccessSchemeNeeded.html") || WindowTopRuleData.url == "chrome://extensions/?id="+chrome.runtime.id){
     chrome.windows.onFocusChanged.addListener(relaunchEnforceWindow);
@@ -373,7 +395,6 @@ function enforceWindowTopRule(){
     chrome.windows.onRemoved.addListener(relaunchClosedEnforceWindow);
   }
 }
-
 function removeWindowTopRule(){
   //close window first?
   if (WindowTopRuleData.url == chrome.runtime.getURL("fileAccessSchemeNeeded.html") || WindowTopRuleData.url == ("chrome://extensions/?id="+chrome.runtime.id)){
@@ -392,6 +413,9 @@ function removeWindowTopRule(){
   };
 }
 
+
+
+/*---Permission Checking Utilities---*/
 function fileAccessSchemeCheck(){
   return chrome.extension.isAllowedFileSchemeAccess((result) => {
     if(result){
@@ -405,9 +429,7 @@ function fileAccessSchemeCheck(){
     }
   });
 }
-
 function checkPermissions() {
-  //console.log(WindowTopRuleData.windowId);
   return chrome.permissions.contains({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
     if (result) {
       if (useLegacyBlocking){
@@ -416,6 +438,7 @@ function checkPermissions() {
       }
       // NOTE: IF YOU ARE GOING TO CHANGE ANYTHING HERE,
       //       MAKE SURE TO LOOK AT relaunchClosedEnforceWindow()
+      //       I KNOW IT'S STUPID BUT JUST IN CASE
       fileAccessSchemeCheck();//Proceed with 2nd check
     }
     else {
@@ -432,18 +455,13 @@ function checkPermissions() {
 
 
 
+/*---Chrome Messaging Functions---*/
 function addEnrollment(enrollCode){
   return updateEnrollData(enrollCode).then(setBlockedSites);
 }
-
-/*function removeEnrollment(){
-  return chrome.storage.sync.clear().then(setBlockedSites);
-}*/
-
 function syncNow(){
   return syncProfiles();
 }
-
 function removeEnrollment(headers){
   return fetch(updateHost+"/api/v1/masterPin",{cache: "no-cache", method:"post", headers: headers}).then((response) => {
     if (response.ok) {
@@ -471,6 +489,7 @@ function removeEnrollment(headers){
   });
 }
 
+/*---Chrome Messaging Function Utilities---*/
 //The function below is used to verify the main server's identity
 //How it works is that when the main server receives the correct PIN
 //to remove the enrollment. A secret file is sent to the client and
@@ -486,7 +505,6 @@ function verifyMagicPacket(blob){
     });
   });
 }
-
 function handleExternalAction(sendResponse, func, args){
   func(args).then((response) => {
     sendResponse({isErr: false, data: response});
@@ -496,6 +514,8 @@ function handleExternalAction(sendResponse, func, args){
 }
 
 
+
+/*---Main Startup---*/
 if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ == '__main__':` in python
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request === 'getBlockedSites') {
