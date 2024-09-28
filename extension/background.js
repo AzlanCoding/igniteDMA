@@ -64,7 +64,7 @@ function checkSafeUrl(url){
 }
 
 /*---Catagory 3 Utilities---*/
-function getClasses(type){// TODO: Rename to getProfiles
+function getProfiles(type){
   // TODO: Set profile type
   return chrome.storage.sync.get("enrollData").then((result) => {
     return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
@@ -72,7 +72,7 @@ function getClasses(type){// TODO: Rename to getProfiles
 }
 function setBlockedSites(){
   console.log("checking blocked sites changes");
-  return getClasses("webfilterV1").then((classList) => {
+  return getProfiles("webfilterV1").then((classList) => {
     let blockedSitesCache = new Map();
     let activeProfilesCache = new Map();
     Object.entries(classList).forEach(([classId, data]) => {
@@ -101,7 +101,7 @@ function setBlockedSites(){
     }
   });
 }
-function syncProfiles(){// TODO: Rename to syncEnrollment
+function syncEnrollment(){
   return chrome.storage.sync.get("enrollData").then((result) => {
     if (result.enrollData){
       return updateEnrollData(result.enrollData.enrollCode)
@@ -460,7 +460,7 @@ function addEnrollment(enrollCode){
   return updateEnrollData(enrollCode).then(setBlockedSites);
 }
 function syncNow(){
-  return syncProfiles();
+  return syncEnrollment();
 }
 function removeEnrollment(headers){
   return fetch(updateHost+"/api/v1/masterPin",{cache: "no-cache", method:"post", headers: headers}).then((response) => {
@@ -544,11 +544,11 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
   });
 
   chrome.runtime.onStartup.addListener(function() {
-    if (typeof syncProfilesInterval == 'undefined'){
-      syncProfiles();
-      let syncProfilesInterval = setInterval(syncProfiles, 30000);
+    if (typeof syncEnrollmentInterval == 'undefined'){
+      syncEnrollment();
+      let syncEnrollmentInterval = setInterval(syncEnrollment, 30000);
     }
-    if (typeof syncProfilesInterval == 'undefined'){
+    if (typeof syncEnrollmentInterval == 'undefined'){
       let setBlockedSitesInterval = setBlockedSitesLoop();
     }
     if (typeof permissionsCheckInterval == 'undefined'){
@@ -557,11 +557,11 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
     }
   });
 
-  if (typeof syncProfilesInterval == 'undefined'){
-    syncProfiles();
-    let syncProfilesInterval = setInterval(syncProfiles, 30000);
+  if (typeof syncEnrollmentInterval == 'undefined'){
+    syncEnrollment();
+    let syncEnrollmentInterval = setInterval(syncEnrollment, 30000);
   }
-  if (typeof syncProfilesInterval == 'undefined'){
+  if (typeof syncEnrollmentInterval == 'undefined'){
     let setBlockedSitesInterval = setBlockedSitesLoop();
   }
   if (typeof permissionsCheckInterval == 'undefined'){
