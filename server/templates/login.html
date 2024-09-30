@@ -38,7 +38,7 @@
 
         <div class="field has-addons">
           <div class="control has-icons-left">
-            <input class="input is-large" type="password" name="password" placeholder="Password" id="passInput" required/>
+            <input class="input is-large" type="password" name="password" placeholder="Password" id="passInput" onkeypress="handleInput(event)" oninput="handleInput(event)" required/>
             <span class="icon is-large is-left">
               <span class="material-symbols-outlined">lock</span>
             </span>
@@ -53,7 +53,7 @@
           <label class="checkbox"><input type="checkbox" name="remember" disabled> Remember me</label>
         </div>
         <input type="hidden" name="next" value="{{ request.args.get('next', '') }}"/>
-        <button class="button is-block is-info is-large is-fullwidth" onclick="if(document.getElementById('loginForm').reportValidity()){this.classList.add('is-loading')}">Login</button>
+        <button class="button is-block is-info is-large is-fullwidth" id="loginFormSubmit" onclick="if(document.getElementById('loginForm').reportValidity()){this.classList.add('is-loading')}">Login</button>
       </form>
     </div>
   </div>
@@ -68,6 +68,12 @@
       else{
         visibilityIcon.innerHTML = "visibility";
         elm.parentElement.parentElement.children[0].children[0].setAttribute('type', 'password');
+      }
+    }
+    function handleInput(event){
+      if (event.key == 'Enter'){
+        event.preventDefault();
+        document.getElementById('loginFormSubmit').click();
       }
     }
     function checkMsg(){

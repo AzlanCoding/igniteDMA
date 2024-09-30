@@ -322,7 +322,7 @@
             <p class="profileEntry title is-size-5">Example Profile</p>
             <p class="profileEntry subtitle is-size-6">Weekdays<br>08:00-14:30</p>
           </div>
-          <div class="editButtonContain">
+          <div class="editButtonContain hidden">
             <button class="editButton" onclick="profileEdit(this)"><span class="material-symbols-outlined">edit</span></button>
           </div>
         </div>
@@ -717,7 +717,12 @@
       $('#profileModal #profileEditor').addClass('hidden');
       $('#profileModal #profileEditorButtons').addClass('hidden');
       if (edit){
-        $('#profileModal .modal-card-title').text("Edit Profile");
+        if (profileCode == 'default'){
+          $('#profileModal .modal-card-title').text("Create New Profile");
+        }
+        else{
+          $('#profileModal .modal-card-title').text("Edit Profile");
+        }
         renderModalData(profileCode).then(() => {
           $('#profileModal #profileEditor').removeClass('hidden');
           $('#profileModal #profileEditorButtons').removeClass('hidden');
@@ -993,13 +998,12 @@
       }
       else{
         $('#greeting').text("Good Morning!");
-      }if (document.getElementById("profileBlockedSites").children.length <= 1){
-    let msg = document.createElement('p');
-    msg.innerHTML = "This profile does not have any blocked sites configured.";
-    document.getElementById("profileBlockedSites").appendChild(msg);
-  }
-
-
+      }
+      if (document.getElementById("profileBlockedSites").children.length <= 1){
+        let msg = document.createElement('p');
+        msg.innerHTML = "This profile does not have any blocked sites configured.";
+        document.getElementById("profileBlockedSites").appendChild(msg);
+      }
       let data = JSON.parse($('#userData').html());
       $('#enrollName').text(data.enrollName);
       $('#enrollNameEditField').val(data.enrollName);
@@ -1010,6 +1014,7 @@
         let profileBox = $(".profilePlaceholder").first().clone().removeClass('profilePlaceholder');
         profileBox.attr("data-profile", profileCode);
         profileBox.find('.addIcon').remove();
+        profileBox.find('.editButtonContain').removeClass('hidden');
         profileBox.find('.profileInfo .title').text(profileData.name);
         profileBox.find('.profileInfo .subtitle').html(parseDays(profileData.enforceDays)+"<br>"+parseTime(profileData.enforceTime));
         if (!profileData.enabled){

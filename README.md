@@ -20,8 +20,20 @@ This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 ****
 
 ## Security
-This full stack application does not collect any personal data nor does it have any major control over the users' devices. Thus even if compromised, there is nothing much to steal or control.
+This full stack application does not collect any personal data from students nor does it have any major control over the users' devices. Thus even if compromised, there is nothing much to steal or control.
 
+## Important Notes
+1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in Chrome's [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
+  > An extension can have at least 5000 dynamic rules. This is exposed as the `MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES`.
+
+2. The extension checks for updates from the profile every 30 seconds. You can force a refresh by pressing `Refresh Profile` in the options page.
+
+3. **FOR ADMINISTRATORS:** When force installing the extension on students' devices, extension needs access to file URLs and `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.<br>
+Even if you cannot enforce this setting, it will by default have access to all sites. A full screen popup will annoy students if they attempt to try to change the setting. The extension will also switch to `legacyWebBlocking` to stop students from visiting the blocked webpage should this popup fail to launch.
+
+4. **FOR DEVELOPERS:** <ins>Do not try to make a pull request to this repository</ins> unless I explicitly give you permission to do so. The purpose of IgniteDMA being open source is to be transparent about what data we collect and process. This is to limit the number of people working on the project so as to keep IgniteDMA secure. If you would like to suggest any new feature vulnerability, feel free to open a discussion in the `Dicussions` tab. To report a vulnerability, go to the `Security` tab, press `Report a Vulnerability` and fill in the necessary fields. Thank you for your understanding.
+
+****
 ## Feature Timeline
 - **End of October 2024**
   - ~Multiple profile Support~ (Completed on 24th September 2024)
@@ -42,19 +54,7 @@ This full stack application does not collect any personal data nor does it have 
   - iPad and Windows Client for students using these devices
   - Point system linked to "Live Polls". Points can be used to claim...
 
-
-## Important Notes
-1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in Chrome's [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
-  > An extension can have at least 5000 dynamic rules. This is exposed as the `MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES`.
-
-2. The extension checks for updates from the profile every 30 seconds. You can force a refresh by pressing `Refresh Profile` in the options page.
-
-3. **FOR ADMINISTRATORS:** When force installing the extension on students' devices, extension needs access to file URLs and `Site Access` must be set to `On all sites` in order for the extensions to work properly. Please ensure you enforce this rule.<br>
-Even if you cannot enforce this setting, it will by default have access to all sites. A full screen popup will annoy students if they attempt to try to change the setting. The extension will also switch to `legacyWebBlocking` to stop students from visiting the blocked webpage should this popup fail to launch.
-
-4. **FOR DEVELOPERS:** <u>Do not try to make a pull request to this repository</u> unless I explicitly give you permission to do so. The purpose of IgniteDMA being open source is to be transparent about what data we collect and process. This is to limit the number of people working on the project so as to keep IgniteDMA secure. If you would like to suggest any new feature or report a possible vulnerability, feel free to open a discussion in the `Dicussions` tab. Thank you for your understanding.
-
-
+****
 ## TODO
 - [x] Extension: Implement `declarativeNetRequest` API
 - [x] Server: Configure DDNS update script
