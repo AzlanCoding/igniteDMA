@@ -10,6 +10,22 @@
     <link rel="stylesheet" href="theme.css">
     <title>Ignite DMA Manager – Profile</title>
     <style>
+      #debugBtn{
+        position: fixed;
+        bottom: 1em;
+        right: 0.5em;
+        scale: 0.75;
+      }
+      #logsContain{
+        overflow: auto;
+        height: 30vh;
+        scroll-behavior: smooth;
+        overscroll-behavior: none;
+      }
+      #logsContain::-webkit-scrollbar-thumb {
+        background: rgba(180, 180, 180);
+      }
+
       .profileTop{
         display: flex;
       }
@@ -318,5 +334,28 @@
         </div>
       </div>
     </section>
+    <button id="debugBtn" class="button is-warning is-outlined is-rounded">Debug</button>
+    <div class="modal" id="debugModal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title has-text-centered">Debugging Information</p>
+          <button class="delete debugModalClose" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body" style="text-align: left;">
+          <p class="title is-size-4" id="extVersion">IgniteDMA v1.0.0</p>
+          <p class="subtitle is-size-6" style="margin-bottom: var(--bulma-block-spacing)"><a id="extVersionInfo" target="_blank"></a></p>
+          <p class="title is-size-4" style="margin-bottom: calc(var(--bulma-block-spacing)/2)">Logs</p>
+          <div class="box has-background-light" id="logsContain">
+          </div>
+        </section>
+        <footer class="modal-card-foot">
+          <div class="buttons">
+            <button class="button is-warning is-outlined" id="logRefreshBtn">Refresh</button>
+            <button class="button debugModalClose">Close</button>
+          </div>
+        </footer>
+      </div>
+    </div>
   </body>
 </html>

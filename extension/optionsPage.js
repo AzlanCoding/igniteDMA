@@ -15,6 +15,14 @@ function checkAlreadyOpened() {
 checkAlreadyOpened();
 
 /*Page Utilities*/
+function fixTimeString(timeString){
+  let a = timeString.split(",");
+  let mm,dd,yyyy;
+  [mm,dd,yyyy] = a[0].split("/")
+  a.shift();
+  return [dd,mm,yyyy].join("/") + "," + a
+}
+
 let enrollData;
 function loadData(){
   return chrome.storage.sync.get("enrollData").then((result) => {
@@ -191,7 +199,7 @@ function renderModalData(profileCode){
   renderModalStatus(profileData);
   document.getElementById("profileDay").innerHTML = parseDays(profileData.enforceDays);
   document.getElementById("profileTime").innerHTML = parseTime(profileData.enforceTime);
-  document.getElementById("profileLastUpdated").innerHTML = new Date(profileData.lastUpdated).toLocaleString();
+  document.getElementById("profileLastUpdated").innerHTML = fixTimeString(new Date(profileData.lastUpdated).toLocaleString());
   Array.from(document.getElementById("profileBlockedSites").children).forEach(e => e.remove());
   profileData.blockedSites.forEach((site) => {
     let input = document.createElement('input');
@@ -239,8 +247,8 @@ function renderUI(){
 
   if (enrollData){
     document.getElementById('enrollName').innerHTML = enrollData.enrollName;
-    document.getElementById('enrollLastUpdated').innerHTML = new Date(enrollData.lastUpdated).toLocaleString();
-    document.getElementById('enrollLastSync').innerHTML = new Date(enrollData.lastSync).toLocaleString();
+    document.getElementById('enrollLastUpdated').innerHTML = fixTimeString(new Date(enrollData.lastUpdated).toLocaleString());
+    document.getElementById('enrollLastSync').innerHTML = fixTimeString(new Date(enrollData.lastSync).toLocaleString());
     document.querySelectorAll(".profileContainer .profileBox:not(.profilePlaceholder), .profileContainer .noProfilesMsg").forEach(e => e.remove());
     Object.entries(enrollData.profiles).forEach(([profileCode,profileData]) => {
       if (profileData.type == "webfilterV1"){
@@ -302,10 +310,62 @@ function updateUIloop(){
   }
 }
 
+
+function renderDebugUI(){
+  return chrome.runtime.sendMessage("getRuntimeLog").then((result) => {
+    let data = (result == '') ? "There are no logs at the moment" : result;
+    let replaceFormatting = {
+       "[INFO]": '<span class="has-text-info">[INFO]</span>',
+       "[WARNING]": '<span class="has-text-warning">[WARNING]</span>',
+       "[ERROR]": '<span class="has-text-danger">[ERROR]</span>',
+       "\n": '<br>'
+    };
+    for (let key in replaceFormatting) {
+      data = data.replaceAll(key, replaceFormatting[key]);
+    }
+    document.getElementById("logsContain").innerHTML = data;
+    document.getElementById("logsContain").scrollTop = document.getElementById("logsContain").scrollHeight;
+  });
+}
+
 function UI_Init(){
+  /*---Debug UI---*/
+  let extensionVersion = chrome.runtime.getManifest().version;
+  document.getElementById("extVersion").innerHTML = "IgniteDMA v"+extensionVersion;
+  document.getElementById("extVersionInfo").href = "https://github.com/AzlanCoding/igniteDMA/releases/tag/v"+extensionVersion;
+  document.getElementById("extVersionInfo").innerHTML = "Release Notes";
+  document.getElementById("logRefreshBtn").addEventListener("click", (event) => {
+    event.target.classList.add("is-loading");
+    renderDebugUI().then(() => {
+      event.target.classList.remove("is-loading");
+    }).catch((e) => {
+      notifi("is-danger", "Error", e);
+    });
+  });
+
+  Array.from(document.getElementsByClassName("debugModalClose")).forEach((elm) => {
+    elm.addEventListener("click", () => {
+      document.getElementById("debugModal").classList.remove('is-active');
+    });
+  });
+
+  document.getElementById('debugBtn').addEventListener("click", () => {
+    document.getElementById("debugModal").classList.add('is-active');
+    //This is stupid but, we have to wait for debugModal to go from display:none
+    //to display:flex, so we can't scroll `logsContain` until it's actually visible.
+    renderDebugUI(() => {
+      renderDebugUI().then(() => {//Update again just in case.
+        document.getElementById("logsContain").scrollTop = document.getElementById("logsContain").scrollHeight;
+      }).catch((e) => {
+        notifi("is-danger", "Error", e);
+      });
+    }, 100);
+  });
+
+
+  /*---Main UI---*/
   Array.from(document.getElementsByClassName("enrollModalClose")).forEach((elm) => {
     elm.addEventListener("click", () => {
-      event.preventDefault();
       document.getElementById("enrollModal").classList.remove('is-active');
     });
   });
@@ -363,7 +423,7 @@ chrome.storage.onChanged.addListener(() => {
 document.addEventListener("DOMContentLoaded", () => {
   try{
     UI_Init();
-    return loadData().then(() => {
+    return loadData().then(renderDebugUI).then(() => {
       updateUIloop();
     }).catch((e) => {
       notifi("is-danger", "Error", e);

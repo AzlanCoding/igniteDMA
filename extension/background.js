@@ -1,14 +1,15 @@
 let updateHost = "https://ignitedma.mooo.com"//Production Server
 //let updateHost = "http://127.0.0.1"//Development Server
 
+let runtimeLog = new String();
 let useLegacyBlocking = false;
 let activeBlockedSites;//Will be an Map but currently null
 let activeProfiles;//Will be an Map but currently null
 //set as null so that areMapsEqual will return false
 //Forces enforceBlockedSites to run on startup.
-//// TODO: migrate activeProfiles to chrome.storage.session
 
 /*---Catagory 1 Utilities---*/
+//Low level Utilities that handle simple data
 function areMapsEqual(map1, map2) {
   if (map1 == null || map2 == null){
     return false;
@@ -23,15 +24,25 @@ function areMapsEqual(map1, map2) {
   }
   return true;
 }
+function fixTimeString(timeString){
+  let a = timeString.split(",");
+  let mm,dd,yyyy;
+  [mm,dd,yyyy] = a[0].split("/");
+  a.shift();
+  return [dd,mm,yyyy].join("/") + "," + a
+}
 
 /*---Catagory 2 Utilities---*/
+//Utilities that parse application data
 function checkProfileActive(data){
-  console.dir(data);
-  let enforceDays = data.enforceDays
+  if (!data.enabled){
+    return false;
+  }
+  //console.dir(data);
   let [startHour, startMin] = data.enforceTime.start.split(":");
   let [endHour, endMin] = data.enforceTime.end.split(":");
   let d = new Date();
-  if (enforceDays.includes(d.getDay())){
+  if (data.enforceDays.includes(d.getDay())){
     if (data.enforceTime.start == data.enforceTime.end){
       return true;
     }
@@ -64,14 +75,15 @@ function checkSafeUrl(url){
 }
 
 /*---Catagory 3 Utilities---*/
+//Utilities that get data and call other Utilities that make changes to the system
 function getProfiles(type){
-  // TODO: Set profile type
   return chrome.storage.sync.get("enrollData").then((result) => {
     return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
   });
 }
 function setBlockedSites(){
-  console.log("checking blocked sites changes");
+  //console.log("checking blocked sites changes");
+  logData("info","Checking for blocked sites to enforce");
   return getProfiles("webfilterV1").then((classList) => {
     let blockedSitesCache = new Map();
     let activeProfilesCache = new Map();
@@ -88,14 +100,15 @@ function setBlockedSites(){
         });
       }
       else{
-        console.log("profile "+data.name+" is not active.");
+        //console.log("profile "+data.name+" is not active.");
+        logData("info","Profile "+data.name+" is not active");
       }
     });
     if (!areMapsEqual(activeProfilesCache, activeProfiles)){
       activeProfiles = activeProfilesCache;
     }
     if (!areMapsEqual(blockedSitesCache,activeBlockedSites)){
-      console.log("activeBlockedSites Set!")
+      //console.log("activeBlockedSites Set!")
       activeBlockedSites = blockedSitesCache;
       return enforceBlockedSites(blockedSitesCache);
     }
@@ -120,8 +133,10 @@ function setBlockedSitesLoop(){
 }
 
 /*---Catagory 4 Utilities---*/
+//Utilities that make changes to the system
 function enforceBlockedSites(data){
-  console.log("Enforcing new blockedSites");
+  //console.log("Enforcing new blockedSites");
+  logData("info","Enforcing new set of blocked sites");
   let blockedSites = Array.from(data.keys());
   if (blockedSites.length == 0){
     //Remove all rules
@@ -154,7 +169,8 @@ function enforceBlockedSites(data){
           })
         }
         else {
-          console.warn("Ignoring site "+site+" as it is not safe.");
+          //console.warn("Ignoring site "+site+" as it is not safe.");
+          logData("warning","Ignoring "+site+" as it is not safe");
         }
         return accumulator
       });
@@ -173,7 +189,8 @@ function enforceBlockedSites(data){
             });
         }
         else {
-          console.warn("Ignoring site "+site+" as it is not safe.");
+          //console.warn("Ignoring site "+site+" as it is not safe.");
+          logData("warning","Ignoring "+site+" as it is not safe");
         }
         return accumulator;
       });
@@ -191,7 +208,7 @@ function enforceBlockedSites(data){
         return chrome.scripting.executeScript({
           target: { tabId: tab.id, allFrames: true},
           func: (data) => {
-            console.log("Checking: "+window.location.href);
+            //console.log("Checking: "+window.location.href);
             let blocked = false;
             Object.keys(data).forEach((site,i) => {
               if (!blocked && window.location.href.includes(site) && !window.location.href.startsWith(chrome.runtime.getURL("blocked.html"))){
@@ -207,14 +224,17 @@ function enforceBlockedSites(data){
           if (err.message && err.message.includes("Cannot access")){
             // NOTE: if no fileAccessScheme permission, `file://` URLs cannot scan
             if (tab.url.startsWith("file://")){
+              logData("warning","No fileAccessScheme permission. Removing tab!");
               chrome.tabs.remove(tab.id)
             }
             else{
-              console.log("Skipping inaccesible webpage\n"+err.message);
+              logData("warning","Unable to inject script into tab due to error: "+err.message);
+              //console.log("Skipping inaccesible webpage\n"+err.message);
             }
           }
           else{
-            console.error("Failed to inject script into tab");
+            //console.error("Failed to inject script into tab");
+            logData("warning","Unable to inject script into tab due to unknown error");
           }
         });
       });
@@ -223,16 +243,19 @@ function enforceBlockedSites(data){
   }
 }
 function updateEnrollData(enrollCode){
+  logData("info","Checking for enrollment data updates");
   return chrome.storage.sync.get("enrollData").then((result) => {
     return fetch(updateHost+"/api/v1/enrollment/"+enrollCode.toLowerCase(), {cache: "no-cache"}).then((response) => {
       if (response.ok){
         return response.json();
       }
       else if (response.status == 404){
+        logData("error","Server cannot find enrollment");
         throw new Error("Cannot find profile!\nPlease press the `Delete Profile` button.<br>Status code: "+response.status);
         //// TODO: Make popup to decide whether to remove profile
       }
       else {
+        logData("error","Server responded with "+response.status+" during enrollment fetch");
         throw new Error("ok something just went like REALLY WRONG.<br>Status Code: " + response.status);
       }
     }).then((data) => {
@@ -254,6 +277,7 @@ function updateEnrollData(enrollCode){
       return chrome.storage.sync.set(save);
     }).catch((e) => {
       if (e.message.includes("Failed to fetch")){
+        logData("error","Unable to contact server for enrollment updates");
         throw new Error("Unable to contact server");
       }
       else{
@@ -261,6 +285,14 @@ function updateEnrollData(enrollCode){
       }
     });
   });
+}
+function logData(level, message){
+  let dateTime = fixTimeString(new Date().toLocaleString("en-us",{
+      hour12: false,
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+  }));
+  runtimeLog += `${dateTime} [${level.toUpperCase()}]: ${message}\n`;
 }
 
 
@@ -276,7 +308,8 @@ function fileAccessSchemeExtPageSwitch(){
   fileAccessSchemeExtPage = true;
 }
 function blockingWindow(url, callback){
-  console.log("blockingWindow launched");
+  logData("info","BlockingWindow Initilised!");
+  //console.log("blockingWindow launched");
   return chrome.windows.create({
     url: url,
     type: "popup",
@@ -328,7 +361,7 @@ function relaunchClosedEnforceWindow(windowId) {
           }
         }
         else{
-          console.log("No permits, relaunching...")
+          //console.log("No permits, relaunching...")
           updateWindowTopRule(WindowTopRuleData.url);
         }
       });
@@ -424,7 +457,8 @@ function fileAccessSchemeCheck(){
       }
     }
     else if (WindowTopRuleData.windowId == null) {
-      console.log("launching fileAccessScheme")
+      //console.log("launching fileAccessScheme")
+      logData("warning","No fileAccessScheme permission. Opening BlockingWindow");
       setWindowTopRule(chrome.runtime.getURL("fileAccessSchemeNeeded.html"));
     }
   });
@@ -443,6 +477,7 @@ function checkPermissions() {
     }
     else {
       if (WindowTopRuleData.windowId == null){
+        logData("warning","Insufficient permissions. Opening BlockingWindow");
         setWindowTopRule(chrome.runtime.getURL("permitNeeded.html"));
       }
       if (!useLegacyBlocking){
@@ -471,6 +506,7 @@ function removeEnrollment(headers){
             return chrome.storage.sync.clear().then(setBlockedSites);
           }
           else{
+            logData("error","Failed to Verify Server's Identity!");
             throw new Error("Failed to Verify Server's Identity!");
           }
         });
@@ -481,6 +517,7 @@ function removeEnrollment(headers){
     }
   }).catch((e) => {
     if (e.message.includes("Failed to fetch")){
+      logData("error","Unable to contact server");
       throw new Error("Unable to contact server");
     }
     else{
@@ -519,8 +556,10 @@ function handleExternalAction(sendResponse, func, args){
 if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ == '__main__':` in python
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request === 'getBlockedSites') {
-      console.dir(activeBlockedSites);
       sendResponse(Object.fromEntries(activeBlockedSites));
+    }
+    else if(request === 'getRuntimeLog'){
+      sendResponse(runtimeLog)
     }
     else if (request === 'fileAccessSchemeExtPageSwitch') {
       fileAccessSchemeExtPageSwitch();
@@ -568,4 +607,5 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
     checkPermissions();
     let permissionsCheckInterval = setInterval(checkPermissions, 1000);
   }
+  logData("info","INITILISATION COMPLETE");
 }

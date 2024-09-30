@@ -23,6 +23,10 @@
   --bulma-light-l: 36%;
 }
 
+html{
+  overflow: auto;
+}
+
 .modal {/*Prevent accidental click to 'logout' when double click close button*/
   --bulma-modal-close-right: 2.5em;
   --bulma-modal-close-top: 2.5em;

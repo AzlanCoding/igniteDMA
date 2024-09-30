@@ -71,7 +71,8 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Extension (`popup.html`): Only allow one `options.html` page to be visible at all times.
 - [x] Extension: Support for multiple profiles
 - [x] Server (`profile.html`): Highlight repeated URLs
-- [ ] Extension (`background.js`): Show error notification when it fails to contact Server (Implement logs modal)
+- [x] Extension (`background.js`): Implement logs modal
+- [ ] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` in logs
 - [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
 - [ ] Server: Create delete enrollment option
