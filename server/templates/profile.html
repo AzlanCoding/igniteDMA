@@ -724,7 +724,8 @@
           if (profileCode == 'default'){
             $('#profileModal #profileEditorButtons .is-danger').addClass('hidden');
             $('#profileModal #profileEditorButtons .is-success').text('Create New Profile');
-          }else {
+          }
+          else {
             $('#profileModal #profileEditorButtons .is-danger').removeClass('hidden');
             $('#profileModal #profileEditorButtons .is-success').text('Save Changes');
           }
@@ -756,6 +757,9 @@
         data.blockedSites.forEach((site) => {
           $("#profileBlockedSites").append($('<input>',{class: "blocked-site-entry input", readOnly: true, value: site}));
         });
+        if ($("#profileBlockedSites").children().length <= 0){
+          $("#profileBlockedSites").append($('<p>').text("This profile does not have any blocked sites configured."));
+        }
         $("#profileModal #profileNameEdit").val(data.name);
         $("#profileModal #profileStateEdit #editState").each(function(){ this.checked = data.enabled;});
         console.dir($("#profileModal #profileDayEdit .checkboxes").children());
@@ -989,7 +993,11 @@
       }
       else{
         $('#greeting').text("Good Morning!");
-      }
+      }if (document.getElementById("profileBlockedSites").children.length <= 1){
+    let msg = document.createElement('p');
+    msg.innerHTML = "This profile does not have any blocked sites configured.";
+    document.getElementById("profileBlockedSites").appendChild(msg);
+  }
 
 
       let data = JSON.parse($('#userData').html());

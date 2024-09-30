@@ -208,6 +208,11 @@ function renderModalData(profileCode){
     input.value = site;
     document.getElementById("profileBlockedSites").appendChild(input);
   });
+  if (document.getElementById("profileBlockedSites").children.length <= 0){
+    let msg = document.createElement('p');
+    msg.innerHTML = "This profile does not have any blocked sites configured.";
+    document.getElementById("profileBlockedSites").appendChild(msg);
+  }
 }
 
 function renderModalStatus(data){
