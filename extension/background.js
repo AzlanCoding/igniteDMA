@@ -1,7 +1,7 @@
 let updateHost = "https://ignitedma.mooo.com"//Production Server
 //let updateHost = "http://127.0.0.1"//Development Server
 
-let runtimeLog = new String();
+let runtimeLog = new Array();
 let useLegacyBlocking = false;
 let activeBlockedSites;//Will be an Map but currently null
 let activeProfiles;//Will be an Map but currently null
@@ -287,12 +287,16 @@ function updateEnrollData(enrollCode){
   });
 }
 function logData(level, message){
+  if (runtimeLog.length >= 100){
+    runtimeLog = runtimeLog.slice(50);
+    logData("info", "cleared log");
+  }
   let dateTime = fixTimeString(new Date().toLocaleString("en-us",{
       hour12: false,
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit", second: "2-digit"
   }));
-  runtimeLog += `${dateTime} [${level.toUpperCase()}]: ${message}\n`;
+  runtimeLog.push(`${dateTime} [${level.toUpperCase()}]: ${message}`);
 }
 
 
@@ -559,7 +563,7 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
       sendResponse(Object.fromEntries(activeBlockedSites));
     }
     else if(request === 'getRuntimeLog'){
-      sendResponse(runtimeLog)
+      sendResponse(runtimeLog.join("<br>"));
     }
     else if (request === 'fileAccessSchemeExtPageSwitch') {
       fileAccessSchemeExtPageSwitch();
