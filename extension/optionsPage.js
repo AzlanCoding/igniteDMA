@@ -199,7 +199,7 @@ function renderModalData(profileCode){
   renderModalStatus(profileData);
   document.getElementById("profileDay").innerHTML = parseDays(profileData.enforceDays);
   document.getElementById("profileTime").innerHTML = parseTime(profileData.enforceTime);
-  document.getElementById("profileLastUpdated").innerHTML = fixTimeString(new Date(profileData.lastUpdated).toLocaleString());
+  document.getElementById("profileLastUpdated").innerHTML = fixTimeString(new Date(profileData.lastUpdated).toLocaleString('en-US'));
   Array.from(document.getElementById("profileBlockedSites").children).forEach(e => e.remove());
   profileData.blockedSites.forEach((site) => {
     let input = document.createElement('input');
@@ -247,8 +247,8 @@ function renderUI(){
 
   if (enrollData){
     document.getElementById('enrollName').innerHTML = enrollData.enrollName;
-    document.getElementById('enrollLastUpdated').innerHTML = fixTimeString(new Date(enrollData.lastUpdated).toLocaleString());
-    document.getElementById('enrollLastSync').innerHTML = fixTimeString(new Date(enrollData.lastSync).toLocaleString());
+    document.getElementById('enrollLastUpdated').innerHTML = fixTimeString(new Date(enrollData.lastUpdated).toLocaleString('en-US'));
+    document.getElementById('enrollLastSync').innerHTML = fixTimeString(new Date(enrollData.lastSync).toLocaleString('en-US'));
     document.querySelectorAll(".profileContainer .profileBox:not(.profilePlaceholder), .profileContainer .noProfilesMsg").forEach(e => e.remove());
     Object.entries(enrollData.profiles).forEach(([profileCode,profileData]) => {
       if (profileData.type == "webfilterV1"){

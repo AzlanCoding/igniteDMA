@@ -751,7 +751,7 @@
         renderModalStatus(data);
         $("#profileModal #profileDay").text(parseDays(data.enforceDays));
         $("#profileModal #profileTime").text(parseTime(data.enforceTime));
-        $("#profileModal #profileLastUpdated").text(fixTimeString(new Date(data.lastUpdated).toLocaleString()));
+        $("#profileModal #profileLastUpdated").text(fixTimeString(new Date(data.lastUpdated).toLocaleString('en-US')));
         $("#profileBlockedSites").children().remove();
         data.blockedSites.forEach((site) => {
           $("#profileBlockedSites").append($('<input>',{class: "blocked-site-entry input", readOnly: true, value: site}));
@@ -996,7 +996,7 @@
       $('#enrollName').text(data.enrollName);
       $('#enrollNameEditField').val(data.enrollName);
       $('#enrollCode').text(data.enrollCode.toUpperCase());
-      $('#enrollLastUpdated').text(fixTimeString(new Date(data.lastUpdated).toLocaleString()));
+      $('#enrollLastUpdated').text(fixTimeString(new Date(data.lastUpdated).toLocaleString('en-US')));
       $(".profileContainer").children().not('.profilePlaceholder').remove();
       Object.entries(data.profiles).forEach(([profileCode,profileData]) => {
         let profileBox = $(".profilePlaceholder").first().clone().removeClass('profilePlaceholder');
