@@ -25,7 +25,7 @@ function fixTimeString(timeString){
 
 let enrollData;
 function loadData(){
-  return chrome.storage.sync.get("enrollData").then((result) => {
+  return chrome.storage.local.get("enrollData").then((result) => {
     //enrollData = JSON.parse(document.getElementById('userData').innerHTML);
     enrollData = result.enrollData
   });

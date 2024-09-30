@@ -73,6 +73,7 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Server (`profile.html`): Highlight repeated URLs
 - [x] Extension (`background.js`): Implement logs modal
 - [ ] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` in logs
+- [ ] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up.
 - [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
 - [ ] Server: Create delete enrollment option

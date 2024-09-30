@@ -77,7 +77,7 @@ function checkSafeUrl(url){
 /*---Catagory 3 Utilities---*/
 //Utilities that get data and call other Utilities that make changes to the system
 function getProfiles(type){
-  return chrome.storage.sync.get("enrollData").then((result) => {
+  return chrome.storage.local.get("enrollData").then((result) => {
     return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
   });
 }
@@ -115,7 +115,7 @@ function setBlockedSites(){
   });
 }
 function syncEnrollment(){
-  return chrome.storage.sync.get("enrollData").then((result) => {
+  return chrome.storage.local.get("enrollData").then((result) => {
     if (result.enrollData){
       return updateEnrollData(result.enrollData.enrollCode)
     }
@@ -244,7 +244,7 @@ function enforceBlockedSites(data){
 }
 function updateEnrollData(enrollCode){
   logData("info","Checking for enrollment data updates");
-  return chrome.storage.sync.get("enrollData").then((result) => {
+  return chrome.storage.local.get("enrollData").then((result) => {
     return fetch(updateHost+"/api/v1/enrollment/"+enrollCode.toLowerCase(), {cache: "no-cache"}).then((response) => {
       if (response.ok){
         return response.json();
@@ -264,17 +264,21 @@ function updateEnrollData(enrollCode){
         data.lastUpdateFetch = new Date().getTime();
         let save = new Object();
         save.enrollData = data;
-        return chrome.storage.sync.set(save);
+        return chrome.storage.local.set(save);
       }
       else{
         result.enrollData.lastSync = new Date().getTime();
-        return chrome.storage.sync.set(result);
+        return chrome.storage.local.set(result);
       }*/
       data.lastSync = new Date().getTime();
       //data.lastUpdateFetch = new Date().getTime();
       let save = new Object();
       save.enrollData = data;
-      return chrome.storage.sync.set(save);
+      return chrome.storage.local.set(save).catch((e) => {
+        // NOTE: QUOTA_BYTES_PER_ITEM quota when using chrome.storage.sync.set
+        logData("error","Failed to save enrollment data");
+        throw new Error("Failed to save enrollment data");
+      })
     }).catch((e) => {
       if (e.message.includes("Failed to fetch")){
         logData("error","Unable to contact server for enrollment updates");
@@ -356,7 +360,7 @@ function fulllscreenEnforceWindow(windowId){
 function relaunchClosedEnforceWindow(windowId) {
   if (windowId === WindowTopRuleData.windowId) {
     if (WindowTopRuleData.url == chrome.runtime.getURL("permitNeeded.html")){
-      chrome.permissions.contains({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
+      chrome.permissions.contains({"permissions": ["storage", "unlimitedStorage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
         if (result) {
           removeWindowTopRule();
           if (useLegacyBlocking){
@@ -468,7 +472,7 @@ function fileAccessSchemeCheck(){
   });
 }
 function checkPermissions() {
-  return chrome.permissions.contains({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
+  return chrome.permissions.contains({"permissions": ["storage", "unlimitedStorage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
     if (result) {
       if (useLegacyBlocking){
         useLegacyBlocking = false;
@@ -507,7 +511,7 @@ function removeEnrollment(headers){
       return response.blob().then((data) => {
         return verifyMagicPacket(data).then((outcome) => {
           if (outcome){
-            return chrome.storage.sync.clear().then(setBlockedSites);
+            return chrome.storage.local.clear().then(setBlockedSites);
           }
           else{
             logData("error","Failed to Verify Server's Identity!");

@@ -21,7 +21,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 function grantPermit(){
   let resetTimeout = setTimeout(() => {window.close()},15000);//reopen fullscreen window
   document.getElementById("permitBtn").classList.add("is-loading");
-  chrome.permissions.request({"permissions": ["storage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ['<all_urls>']}, (granted) => {
+  chrome.permissions.request({"permissions": ["storage", "unlimitedStorage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ['<all_urls>']}, (granted) => {
     clearTimeout(resetTimeout);
     if (granted) {
       window.close();
