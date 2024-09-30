@@ -70,12 +70,13 @@
       text-align: left;
       margin: 0.5em;
       cursor: pointer;
-      transition: box-shadow 0.5s ease-in-out;
+      transition: box-shadow 0.5s ease-in-out, background-color 0.5s ease-in-out;
       box-shadow: 0 2px 3px rgba(10,10,10,.2), 0 0 0 1px rgba(10,10,10,.2);
     }
     .profileBox:hover{
       box-shadow: 10px 15px rgba(10,10,10,.2);
-      transition: box-shadow 0.5s ease-in-out;
+      background-color: var(--bulma-scheme-main-bis);
+      transition: box-shadow 0.5s ease-in-out, background-color 0.5s ease-in-out;
     }
     .editButton2{
       position: absolute;
@@ -127,6 +128,10 @@
     }
     .table-container td {
       width: 100%;
+    }
+    td button:hover{
+      background: rgba(100,100,100,0.5);
+      transition: background 0.5s ease-in-out;
     }
     #profileTimeEdit label {
       display: inline;
@@ -746,7 +751,7 @@
         renderModalStatus(data);
         $("#profileModal #profileDay").text(parseDays(data.enforceDays));
         $("#profileModal #profileTime").text(parseTime(data.enforceTime));
-        $("#profileModal #profileLastUpdated").text(new Date(data.lastUpdated).toLocaleString());
+        $("#profileModal #profileLastUpdated").text(fixTimeString(new Date(data.lastUpdated).toLocaleString()));
         $("#profileBlockedSites").children().remove();
         data.blockedSites.forEach((site) => {
           $("#profileBlockedSites").append($('<input>',{class: "blocked-site-entry input", readOnly: true, value: site}));
@@ -836,12 +841,13 @@
         return days.split('').map(char => daysOfWeek[parseInt(char)]).join(', ');
       }
     }
-
-
-
-
-
-    /*START NEW CODE*/
+    function fixTimeString(timeString){
+      let a = timeString.split(",");
+      let mm,dd,yyyy;
+      [mm,dd,yyyy] = a[0].split("/")
+      a.shift();
+      return [dd,mm,yyyy].join("/") + "," + a
+    }
     function forceNewInput(){
       const input = $('#firstBox');
       let value = input.val().trim();
@@ -973,12 +979,6 @@
         //another computer while user was editiing. Resulting in 2 diffrent versions
       }
     }
-
-    /*END NEW CODE*/
-
-
-
-
     function renderUI(){
       let now = new Date();
       if (now.getHours() >= 18){
@@ -996,7 +996,7 @@
       $('#enrollName').text(data.enrollName);
       $('#enrollNameEditField').val(data.enrollName);
       $('#enrollCode').text(data.enrollCode.toUpperCase());
-      $('#enrollLastUpdated').text(new Date(data.lastUpdated).toLocaleString());
+      $('#enrollLastUpdated').text(fixTimeString(new Date(data.lastUpdated).toLocaleString()));
       $(".profileContainer").children().not('.profilePlaceholder').remove();
       Object.entries(data.profiles).forEach(([profileCode,profileData]) => {
         let profileBox = $(".profilePlaceholder").first().clone().removeClass('profilePlaceholder');

@@ -80,12 +80,13 @@
         text-align: left;
         margin: 0.5em;
         cursor: pointer;
-        transition: box-shadow 0.5s ease-in-out;
+        transition: box-shadow 0.5s ease-in-out, background-color 0.5s ease-in-out;
         box-shadow: 0 2px 3px rgba(10,10,10,.2), 0 0 0 1px rgba(10,10,10,.2);
       }
       .profileBox:hover{
         box-shadow: 10px 15px rgba(10,10,10,.2);
-        transition: box-shadow 0.5s ease-in-out;
+        background-color: var(--bulma-scheme-main-bis);
+        transition: box-shadow 0.5s ease-in-out, background-color 0.5s ease-in-out;
       }
 
       #profileModal .modal-card{
