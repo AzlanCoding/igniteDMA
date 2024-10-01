@@ -246,7 +246,7 @@ function updateEnrollData(enrollCode){
       }
       else if (response.status == 404){
         logData("error","Server cannot find enrollment");
-        throw new Error("Cannot find profile!\nPlease press the `Delete Profile` button.<br>Status code: "+response.status);
+        throw new Error("Cannot find enrollment!\nPlease press the <code>Remove Enrollment</code> button, enter the Master PIN provided by your admin and press <code>Remove Enrollment</code>.<br>Status code: "+response.status);
         //// TODO: Make popup to decide whether to remove profile
       }
       else {

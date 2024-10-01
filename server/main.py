@@ -139,7 +139,12 @@ def verifyPinV2():
         else:
             abort(404)
     except AttributeError:
-        abort(404)
+        #Server cannot find enrollment.
+        #This should not happen but if this does somehow happen, student can enter master pin to remove profile.
+        if request.headers.get('PIN') == os.environ["MASTER_PIN"]:
+            return send_from_directory('storage','MagicPacket1.bin')
+        else:
+            abort(404)
 
 
 @main.route('/api/v0/getClass/<path:path>')
