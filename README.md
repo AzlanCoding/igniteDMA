@@ -1,3 +1,8 @@
+# NOTICE
+**PRODUCTION IS DOWN!!!** because my server (quite literally) stopped working. (Last log received was around 1801 hrs on 30th September 2024).<br>
+idk if it's the 2V5A AC to DC adapter or if the motherboared is just not working anymore. I tried to disect a USB wire and then wire it to the board but it nearly started an electrical fire on my table **twice** (the first time because it was the wrong way around, second time because the red and black wire touched each other).<br>
+It is likely that the e-waste that was running my server may no longer work and I will only be able to get production up again after my exams. Sorry for the inconvienience.
+****
 # Project Ignite
 Project Ignite is a new Device Manager Application (DMA) for schools developed after [Mobile Guardian was hacked](https://www.channelnewsasia.com/singapore/mobile-guardian-application-remove-cybersecurity-incident-moe-4526676).
 <br>
