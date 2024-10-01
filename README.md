@@ -23,9 +23,11 @@ This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 </a>
 
 ****
+## License
+This project is licensed under the [Non-Profit Open Software License version 3.0 (NPOSL-3.0)](https://opensource.org/license/nposl-3-0). This software is intended for non-profit use only. Commercial use is strictly prohibited. For more details, see the `LICENSE.md` file.
 
 ## Security
-This full stack application does not collect any personal data from students nor does it have any major control over the users' devices. Thus even if compromised, there is nothing much to steal or control.
+This full stack application does not collect any personal data from students nor does it have any major control over the users' devices. Thus even if compromised, there is nothing much to steal or control. To report a vulnerability, go to the `Security` tab, press `Report a Vulnerability` and fill in the necessary fields. 
 
 ## Important Notes
 1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in Chrome's [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
