@@ -7,7 +7,7 @@ Licensed under the Non-Profit Open Software License version 3.0
 1) **Grant of Copyright License.** Licensor grants You a worldwide, royalty-free, non-exclusive, sublicensable license, for the duration of the copyright, to do the following:<br>
   a) to reproduce the Original Work in copies, either alone or as part of a collective work;<br>
   b) to translate, adapt, alter, transform, modify, or arrange the Original Work, thereby creating derivative works (“Derivative Works”) based upon the Original Work;<br>
-  c) to distribute or communicate copies of the Original Work and Derivative Works to the public, <ins>with the proviso that copies of Original Work or Derivative Works that You distribute or communicate shall be licensed under this Non-Profit Open Software License or as provided in section 17(d)<ins>;<br>
+  c) to distribute or communicate copies of the Original Work and Derivative Works to the public, <ins>with the proviso that copies of Original Work or Derivative Works that You distribute or communicate shall be licensed under this Non-Profit Open Software License or as provided in section 17(d)</ins>;<br>
   d) to perform the Original Work publicly; and<br>
   e) to display the Original Work publicly.<br>
 
