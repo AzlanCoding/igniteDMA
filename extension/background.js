@@ -1,5 +1,5 @@
-let updateHost = "https://ignitedma.mooo.com"//Production Server
-//let updateHost = "http://127.0.0.1"//Development Server
+//let updateHost = "https://ignitedma.mooo.com"//Production Server
+let updateHost = "http://127.0.0.1"//Development Server
 
 let runtimeLog = new Array();
 let useLegacyBlocking = false;
@@ -81,7 +81,7 @@ function getProfiles(type){
     return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
   });
 }
-function setBlockedSites(){
+function setBlockedSites(forceRefresh){
   //console.log("checking blocked sites changes");
   logData("info","Checking for blocked sites to enforce");
   return getProfiles("webfilterV1").then((classList) => {
@@ -92,11 +92,6 @@ function setBlockedSites(){
         activeProfilesCache.set(classId, data.name);
         data.blockedSites.forEach((site) => {
           blockedSitesCache.set(site, data.name)
-          /*if (checkSafeUrl(site)){
-          }
-          else{
-            console.warn("Skipping "+site+" as it is an unsafe URL.")
-          }*/
         });
       }
       else{
@@ -104,11 +99,10 @@ function setBlockedSites(){
         logData("info","Profile "+data.name+" is not active");
       }
     });
-    if (!areMapsEqual(activeProfilesCache, activeProfiles)){
+    if (forceRefresh || !areMapsEqual(activeProfilesCache, activeProfiles)){
       activeProfiles = activeProfilesCache;
     }
-    if (!areMapsEqual(blockedSitesCache,activeBlockedSites)){
-      //console.log("activeBlockedSites Set!")
+    if (forceRefresh || !areMapsEqual(blockedSitesCache,activeBlockedSites)){
       activeBlockedSites = blockedSitesCache;
       return enforceBlockedSites(blockedSitesCache);
     }
@@ -155,7 +149,8 @@ function enforceBlockedSites(data){
     //Therefore, legacyBlocking is used when this setting is not avaliable.
     // NOTE: priority set to 2 for future whiteLists
     let newrules;
-    if (useLegacyBlocking){
+    if (useLegacyBlocking){// TODO: reduce code repetition in this condition block.
+      logData("info","Using legacy blocking method!");
       newrules = blockedSites.reduce((accumulator, site, index) => {
         if (index == 1){
           accumulator = new Array();
@@ -285,6 +280,7 @@ function updateEnrollData(enrollCode){
         throw new Error("Unable to contact server");
       }
       else{
+        logData("error","Unknown error: "+e.message);
         throw e;
       }
     });
@@ -365,7 +361,7 @@ function relaunchClosedEnforceWindow(windowId) {
           removeWindowTopRule();
           if (useLegacyBlocking){
             useLegacyBlocking = false;
-            return setBlockedSites();
+            return setBlockedSites(true);
           }
         }
         else{
@@ -476,7 +472,7 @@ function checkPermissions() {
     if (result) {
       if (useLegacyBlocking){
         useLegacyBlocking = false;
-        return setBlockedSites();
+        return setBlockedSites(true);
       }
       // NOTE: IF YOU ARE GOING TO CHANGE ANYTHING HERE,
       //       MAKE SURE TO LOOK AT relaunchClosedEnforceWindow()
@@ -490,7 +486,7 @@ function checkPermissions() {
       }
       if (!useLegacyBlocking){
         useLegacyBlocking = true;
-        return setBlockedSites();
+        return setBlockedSites(true);
       }
     }
   });
