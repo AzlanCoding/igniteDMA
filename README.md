@@ -1,8 +1,3 @@
-# NOTICE
-**PRODUCTION IS DOWN!!!** because my server (quite literally) stopped working. (Last log received was around 1801 hrs on 30th September 2024).<br>
-idk if it's the 2V5A AC to DC adapter or if the motherboared is just not working anymore. I tried to disect a USB wire and then wire it to the board but it nearly started an electrical fire on my table **twice** (the first time because it was the wrong way around, second time because the red and black wire touched each other).<br>
-It is likely that the e-waste that was running my server may no longer work and I will only be able to get production up again after my exams. Sorry for the inconvienience.
-****
 # Project Ignite
 Project Ignite is a new Device Manager Application (DMA) for schools developed after [Mobile Guardian was hacked](https://www.channelnewsasia.com/singapore/mobile-guardian-application-remove-cybersecurity-incident-moe-4526676).
 <br>
@@ -27,7 +22,7 @@ This project is made possible thanks to [Free DNS](https://freedns.afraid.org/).
 This project is licensed under the [Non-Profit Open Software License version 3.0 (NPOSL-3.0)](https://opensource.org/license/nposl-3-0). This software is intended for non-profit use only. Commercial use is strictly prohibited. For more details, see the `LICENSE.md` file.
 
 ## Security
-This full stack application does not collect any personal data from students nor does it have any major control over the users' devices. Thus even if compromised, there is nothing much to steal or control. To report a vulnerability, go to the `Security` tab, press `Report a Vulnerability` and fill in the necessary fields. 
+This full stack application does not collect any personal data from students nor does it have any major control over the users' devices. Thus even if compromised, there is nothing much to steal or control. To report a vulnerability, go to the `Security` tab, press `Report a Vulnerability` and fill in the necessary fields.
 
 ## Important Notes
 1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in Chrome's [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
@@ -79,8 +74,9 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Extension: Support for multiple profiles
 - [x] Server (`profile.html`): Highlight repeated URLs
 - [x] Extension (`background.js`): Implement logs modal
-- [ ] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` in logs
-- [ ] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up.
+- [ ] [PRIORITY] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` in logs
+- [ ] [PRIORITY] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up.
+- [ ] [PRIORITY] Server & Extension: Return HTTP 304 when resource not modified
 - [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
 - [ ] Server: Create delete enrollment option
