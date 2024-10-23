@@ -2,8 +2,10 @@ from flask import Blueprint, render_template, send_from_directory, request, redi
 from flask_login import login_required, current_user
 from dotenv import load_dotenv
 import json, datetime, os, random, string
-from .jsonDatabase import Loader, Setter, Checker
+from .jsonDatabase import Loader, Setter, Checker, setUpJsonDb
 from . import db
+
+setUpJsonDb()
 
 
 main = Blueprint('main', __name__)
