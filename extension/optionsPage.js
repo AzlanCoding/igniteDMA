@@ -423,7 +423,6 @@ function UI_Init(){
 
 /*---Dynamic Refresh---*/
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  console.log(areaName)
   if (areaName == 'local'){
     return loadData().then(() => {
       renderUI();

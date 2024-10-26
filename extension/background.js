@@ -81,7 +81,6 @@ async function getProfiles(type){
   return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
 }
 async function setBlockedSites(forceRefresh){
-  // BUG: [PRIORITY][SUPER URGENT] Occasional SIGKILL when this function is called.
   //console.log("checking blocked sites changes");
   await logData("info","Checking for blocked sites to enforce");
   let profileList = await getProfiles("webfilterV1");
@@ -293,15 +292,15 @@ async function updateEnrollData(enrollCode){
 async function logData(level, message){
   let data = await chrome.storage.session.get("runtimeLog")
   let runtimeLog = data.runtimeLog || new Array();
-  if (runtimeLog.length >= 100){
-    runtimeLog = runtimeLog.slice(50);
-    await logData("info", "cleared log");
-  }
   let dateTime = fixTimeString(new Date().toLocaleString("en-us",{
       hour12: false,
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit", second: "2-digit"
   }));
+  if (runtimeLog.length >= 100){
+    runtimeLog = runtimeLog.slice(50);
+    runtimeLog.push(`${dateTime} [INFO]: Log cleared.`);
+  }
   runtimeLog.push(`${dateTime} [${level.toUpperCase()}]: ${message}`);
   await chrome.storage.session.set({runtimeLog: runtimeLog});
 }
