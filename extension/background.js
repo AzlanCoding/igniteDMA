@@ -1,5 +1,5 @@
-let updateHost = "https://ignitedma.mooo.com"//Production Server
-//let updateHost = "http://127.0.0.1"//Development Server
+//let updateHost = "https://ignitedma.mooo.com"//Production Server
+let updateHost = "http://127.0.0.1"//Development Server
 
 let runtimeLog = new Array();
 let useLegacyBlocking = false;
@@ -246,7 +246,7 @@ function updateEnrollData(enrollCode){
       }
       else if (response.status == 404){
         logData("error","Server cannot find enrollment");
-        throw new Error("Cannot find enrollment!\nPlease press the <code>Remove Enrollment</code> button, enter the Master PIN provided by your admin and press <code>Remove Enrollment</code>.<br>Status code: "+response.status);
+        throw new Error("Cannot find enrollment!\nPlease press the <code>Remove Enrollment</code> button, enter the Backup Removal PIN provided by your admin and press <code>Remove Enrollment</code>.");
         //// TODO: Make popup to decide whether to remove profile
       }
       else {
@@ -271,6 +271,7 @@ function updateEnrollData(enrollCode){
       save.enrollData = data;
       return chrome.storage.local.set(save).catch((e) => {
         // NOTE: QUOTA_BYTES_PER_ITEM quota when using chrome.storage.sync.set
+        // Must save data to local.
         logData("error","Failed to save enrollment data");
         throw new Error("Failed to save enrollment data");
       })

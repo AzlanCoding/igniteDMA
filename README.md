@@ -74,10 +74,10 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Extension: Support for multiple profiles
 - [x] Server (`profile.html`): Highlight repeated URLs
 - [x] Extension (`background.js`): Implement logs modal
+- [x] Server & Extension: Use a `Backup Removal Pin` instead of the `Master Pin` to remove deleted enrollments.
 - [ ] [PRIORITY] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` in logs
 - [ ] [PRIORITY] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up.
 - [ ] [PRIORITY] Server & Extension: Return HTTP 304 when resource not modified
-- [ ] [PRIORITY] Server & Extension: Use a `Backup Removal Pin` instead of the `Master Pin` to remove deleted enrollments.
 - [ ] Server (`profile.html`): Better CSS animations.
 - [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students
