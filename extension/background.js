@@ -153,7 +153,7 @@ async function enforceBlockedSites(data){
     //Therefore, legacyBlocking is used when this setting is not avaliable.
     // NOTE: priority set to 2 just in case
     /// NOTE: legacyBlocking used when more than 4990 rules needed.
-    //// TODO: reduce code repetition in this condition block.
+    //// NOTE: code repetition in this condition block meant for performace.
     let newrules = new Array();
     if (useLegacyBlocking || blockedSites.length >= 4990){
       await logData("info","Using legacy blocking method!");
@@ -509,7 +509,7 @@ async function removeEnrollment(headers){
     if (response.ok) {
       let data = await response.blob()
       if (await verifyMagicPacket(data)){
-        return chrome.storage.local.clear()
+        await chrome.storage.local.clear()
         await setBlockedSites();
       }
       else{
