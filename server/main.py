@@ -30,10 +30,12 @@ def profile_post():
     for entry in formEntries:
         if request.form.get(entry) == None:
             abort(400)#Insufficient form data
+            return
 
     enrollData = Loader.loadEnrollmentRaw(current_user.enrollId)
     if not ((request.form.get("profileCode") == 'default') or (request.form.get("profileCode") in enrollData['profiles'])):
         abort(403)#User has no access to edit the profile
+        return
 
     if not Checker.checkNewProfileValidity(request.form.get("profileCode"), request.form.get("profileLastUpdated")):
         return "Error: Someone edited the profile while you were editing it, and then saved it before you could save it."
@@ -69,6 +71,8 @@ def profile_post():
         Setter.saveEnroll(current_user.enrollId, enrollData)#Update last modified
         Setter.saveProfile(request.form.get("profileCode"), data);
         flash("Profile updated successfully!")
+
+    # NOTE: Setter.saveEnroll MUST be called anyway so that enroll cache is invalidated
 
     return redirect(url_for('main.profile'))
 
@@ -129,7 +133,11 @@ def sendProfile(path):
 @main.route('/api/v1/enrollment/<path:path>')
 def getEnrollment(path):
     try:
-        return jsonify(Loader.loadEnrollment(path))
+        data = Loader.loadEnrollment(path)
+        if request.headers.get("lastSync") and int(request.headers.get("lastSync")) > data["lastUpdated"]:
+            return "", 304 #Resource Not Modified
+        else:
+            return jsonify(data)
     except FileNotFoundError:
         abort(404)
 

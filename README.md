@@ -1,7 +1,7 @@
 # Project Ignite
 Project Ignite is a new Device Manager Application (DMA) for schools developed after [Mobile Guardian was hacked](https://www.channelnewsasia.com/singapore/mobile-guardian-application-remove-cybersecurity-incident-moe-4526676).
 <br>
-Project Ignite focuses on ensuring the **Security** and **Privacy** of students as well as being as **Fail-Proof** as possible. The chrome extension for students is **designed to work even if the server goes offline** after it has been properly set up. Moreover, the chrome extension does not collect any data from students' devices (as of current stable version).
+Project Ignite focuses on ensuring the **Security** and **Privacy** of students as well as being as **Fail-Proof** as possible. The chrome extension for students is **designed to work even if the server goes offline** after it has been properly set up. Moreover, the chrome extension does not collect any data from students' devices (as of current stable version). Project Ignite aims to protect the Privacy and anonymity of students as much as possible.
 <br>
 The foundation of this application was made in less than 3 days.
 <br><br>
@@ -25,8 +25,11 @@ This project is licensed under the [Non-Profit Open Software License version 3.0
 This full stack application does not collect any personal data from students nor does it have any major control over the users' devices. Thus even if compromised, there is nothing much to steal or control. To report a vulnerability, go to the `Security` tab, press `Report a Vulnerability` and fill in the necessary fields.
 
 ## Important Notes
-1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`. As stated in Chrome's [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
+1. **THERE IS A LIMIT OF 5,000 BLOCKED SITES PER STUDENT** due to the usage of `declarativeNetRequest`.<br>
+When this limit is reached, the extension goes into `legacyWebBlocking` mode which still works but doesn't display the `blocked.html` page. When in `legacyWebBlocking`, the extension has a limit of 30,000 sites. These limitations are set by Google and IgniteDMA has no control over them.<br>
+As stated in Chrome's [documentation](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#dynamic-rules):
   > An extension can have at least 5000 dynamic rules. This is exposed as the `MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES`.
+
 
 2. The extension checks for updates from the profile every 30 seconds. You can force a refresh by pressing `Refresh Profile` in the options page.
 
@@ -40,7 +43,8 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - **End of October 2024**
   - ~Multiple profile Support~ (Completed on 24th September 2024)
 - **End of November 2024**
-  - Ability to handle more than 5,000 blocked sites
+  - ~Ability to handle more than 5,000 blocked sites~ (Somewhat fixed on 26 October 2024 [NOT TESTED])
+  - "Tags" for list of categorized websites for administrators to add to their block list.
   - "Live class" feature, which includes the following features:
     - "Look Up" mode. Temporarily locks students' devices to force them to pay attention to the teacher. Triggered by the teacher.
     - "Live Screen" mode. Streams teachers' computer screens to students, allowing them to take screenshots and rewind if needed. <br>This is especially useful when teachers are going through answers for a test. Students can take screenshot or rewind so that they can copy their corrections later and spend more time understanding what they did wrongly.<br>(Ability to rewind can be disabled)
@@ -75,9 +79,9 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Server (`profile.html`): Highlight repeated URLs
 - [x] Extension (`background.js`): Implement logs modal
 - [x] Server & Extension: Use a `Backup Removal Pin` instead of the `Master Pin` to remove deleted enrollments.
-- [ ] [PRIORITY] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` in logs
+- [x] Server & Extension: Return HTTP 304 when resource not modified
+- [x] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` for logs
 - [ ] [PRIORITY] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up.
-- [ ] [PRIORITY] Server & Extension: Return HTTP 304 when resource not modified
 - [ ] Server (`profile.html`): Better CSS animations.
 - [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students

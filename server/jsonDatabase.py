@@ -13,17 +13,24 @@ def setUpJsonDb():
 class Cache():
     """Caching System"""
     def getFromCache(file):
-        if os.isfile("./server/storage/cache/"+file+".json"):
+        if os.path.isfile("./server/storage/cache/"+file+".json"):
             with open("./server/storage/cache/"+file+".json", 'r') as f:
                 data = json.load(f)
                 f.close()
                 return data
         else:
             return None
+
     def setCache(file, data):
         with open("./server/storage/cache/"+file+".json", 'w', encoding='utf8') as f:
             f.write(json.dumps(data))
             f.close()
+
+    def invalidateCache(file):
+        try:
+            os.remove("./server/storage/cache/"+file+".json")
+        except FileNotFoundError:
+            pass
 
 
 class Loader():
@@ -43,9 +50,9 @@ class Loader():
             f.close()
             profileData = {}
             for profileCode in base["profiles"]:
-                profileData.update({profileCode:Loader.loadProfile(profileCode)})
+                profileData.update({profileCode: Loader.loadProfile(profileCode)})
             base["profiles"] = profileData
-            setCache('school'+enrollCode.lower(),base)
+            Cache.setCache('school'+enrollCode.lower(),base)
             return base
 
     def loadEnrollmentRaw(enrollCode):
@@ -71,6 +78,7 @@ class Setter():
     def saveEnroll(enrollCode, data):
         data["lastUpdated"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
         Setter.__setData("schools/"+enrollCode.lower(), data)
+        Cache.invalidateCache('school'+enrollCode.lower())
 
     def setEnrollMasterPin(enrollCode, newPin):
         EnrollData.query.get(enrollCode.lower()).masterPin = newPin

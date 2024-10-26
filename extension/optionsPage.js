@@ -76,7 +76,7 @@ function parseTime(enrollTime){
   }
 }
 
-function parseDays(enforceDays){
+function parseDays(enforceDays, shortForm){
   let days = enforceDays.split('').sort().join('');
   if (days == "0123456"){
     return "Everyday";
@@ -86,6 +86,10 @@ function parseDays(enforceDays){
   }
   else if (days == "06") {
     return "Weekends";
+  }
+  else if (shortForm){
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thurs", "Fri", "Sat"];
+    return days.split('').map(char => daysOfWeek[parseInt(char)]).join(', ');
   }
   else{
     const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -262,7 +266,7 @@ function renderUI(){
         profileBox.setAttribute("data-profile", profileCode);
         profileBox.getElementsByClassName("addIcon")[0].remove();
         profileBox.querySelector('.profileInfo .title').innerHTML = profileData.name;
-        profileBox.querySelector('.profileInfo .subtitle').innerHTML = parseDays(profileData.enforceDays)+"<br>"+parseTime(profileData.enforceTime);
+        profileBox.querySelector('.profileInfo .subtitle').innerHTML = parseDays(profileData.enforceDays, true)+"<br>"+parseTime(profileData.enforceTime);
         profileBox.onclick = (event) => {
           openProfileModal(profileCode);
         };
@@ -317,8 +321,8 @@ function updateUIloop(){
 
 
 function renderDebugUI(){
-  return chrome.runtime.sendMessage("getRuntimeLog").then((result) => {
-    let data = (result == '') ? "There are no logs at the moment" : result;
+  return chrome.storage.session.get("runtimeLog").then((result) => {
+    let data = (typeof result.runtimeLog == 'undefined') ? "There are no logs at the moment" : result.runtimeLog.join("<br>");
     let replaceFormatting = {
        "[INFO]": '<span class="has-text-info">[INFO]</span>',
        "[WARNING]": '<span class="has-text-warning">[WARNING]</span>',
@@ -339,14 +343,14 @@ function UI_Init(){
   document.getElementById("extVersion").innerHTML = "IgniteDMA v"+extensionVersion;
   document.getElementById("extVersionInfo").href = "https://github.com/AzlanCoding/igniteDMA/releases/tag/v"+extensionVersion;
   document.getElementById("extVersionInfo").innerHTML = "Release Notes";
-  document.getElementById("logRefreshBtn").addEventListener("click", (event) => {
+  /*document.getElementById("logRefreshBtn").addEventListener("click", (event) => {
     event.target.classList.add("is-loading");
     renderDebugUI().then(() => {
       event.target.classList.remove("is-loading");
     }).catch((e) => {
       notifi("is-danger", "Error", e);
     });
-  });
+  });*/
 
   Array.from(document.getElementsByClassName("debugModalClose")).forEach((elm) => {
     elm.addEventListener("click", () => {
@@ -358,13 +362,16 @@ function UI_Init(){
     document.getElementById("debugModal").classList.add('is-active');
     //This is stupid but, we have to wait for debugModal to go from display:none
     //to display:flex, so we can't scroll `logsContain` until it's actually visible.
-    renderDebugUI(() => {
+    setTimeout(() => {
+      document.getElementById("logsContain").scrollTop = document.getElementById("logsContain").scrollHeight;
+    }, 100);
+    /*setTimeout(() => {
       renderDebugUI().then(() => {//Update again just in case.
         document.getElementById("logsContain").scrollTop = document.getElementById("logsContain").scrollHeight;
       }).catch((e) => {
         notifi("is-danger", "Error", e);
       });
-    }, 100);
+    }, 100);*/
   });
 
 
@@ -415,12 +422,20 @@ function UI_Init(){
 
 
 /*---Dynamic Refresh---*/
-chrome.storage.onChanged.addListener(() => {
-  loadData().then(() => {
-    renderUI();
-  }).catch((e) => {
-    notifi("is-danger", "Error", e);
-  });
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  console.log(areaName)
+  if (areaName == 'local'){
+    return loadData().then(() => {
+      renderUI();
+    }).catch((e) => {
+      notifi("is-danger", "Error", e);
+    });
+  }
+  else{
+    renderDebugUI().catch((e) => {
+      notifi("is-danger", "Error", e);
+    });
+  }
 });
 
 
