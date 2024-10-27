@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "EnrollCode": {
+      "title": "Enrollment Code",
+      "description": "Sets the enrollment code for your school.",
+      "type": "string"
+    }
+  }
+}

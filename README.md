@@ -81,7 +81,7 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Server & Extension: Use a `Backup Removal Pin` instead of the `Master Pin` to remove deleted enrollments.
 - [x] Server & Extension: Return HTTP 304 when resource not modified
 - [x] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` for logs
-- [ ] [PRIORITY] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up.
+- [x] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up. [NOT TESTED]
 - [ ] Server (`profile.html`): Better CSS animations.
 - [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students

@@ -1,7 +1,6 @@
 //let updateHost = "https://ignitedma.mooo.com"//Production Server
 let updateHost = "http://127.0.0.1"//Development Server
 
-//let runtimeLog = new Array();
 let useLegacyBlocking = false;
 let activeBlockedSites;//Will be an Map but currently null
 let activeProfiles;//Will be an Map but currently null
@@ -38,7 +37,6 @@ function checkProfileActive(data){
   if (!data.enabled){
     return false;
   }
-  //console.dir(data);
   let [startHour, startMin] = data.enforceTime.start.split(":");
   let [endHour, endMin] = data.enforceTime.end.split(":");
   let d = new Date();
@@ -81,7 +79,6 @@ async function getProfiles(type){
   return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
 }
 async function setBlockedSites(forceRefresh){
-  //console.log("checking blocked sites changes");
   await logData("info","Checking for blocked sites to enforce");
   let profileList = await getProfiles("webfilterV1");
   let blockedSitesCache = new Map();
@@ -97,7 +94,6 @@ async function setBlockedSites(forceRefresh){
       });
     }
     else{
-      //console.log("profile "+data.name+" is not active.");
       await logData("info","Profile "+data.name+" is not active");
     }
   }
@@ -118,11 +114,16 @@ async function syncEnrollment(){
   }
   else{
     //User not registered in any enrollment
-    await logData("info", "User not connected to enrollment. No enrollment to sync.")
+    //// NOTE: (TO SELF) Manage chrome policies in /etc/opt/chrome/policies/managed/test_policy.json
+    let enrollCode = await chrome.storage.managed.get("EnrollCode");
+    if (enrollCode.EnrollCode){
+      let removedEnrollCode = await chrome.storage.local.get("rmvEnroll");
+      if (enrollCode != removedEnrollCode.rmvEnroll){
+        addEnrollment(enrollCode);
+      }
+    }
+    await logData("info", "User not connected to enrollment. No enrollment to sync.");
   }
-  /*else {
-    throw new Error("No enrollData to start sync!")
-  }*/
 }
 async function setBlockedSitesLoop(){
   await setBlockedSites()
@@ -134,7 +135,6 @@ async function setBlockedSitesLoop(){
 /*---Catagory 4 Utilities---*/
 //Utilities that make changes to the system
 async function enforceBlockedSites(data){
-  //console.log("Enforcing new blockedSites");
   await logData("info","Enforcing new set of blocked sites");
   let blockedSites = Array.from(data.keys());
   let oldRules = await chrome.declarativeNetRequest.getDynamicRules();
@@ -157,7 +157,6 @@ async function enforceBlockedSites(data){
     let newrules = new Array();
     if (useLegacyBlocking || blockedSites.length >= 4990){
       await logData("info","Using legacy blocking method!");
-      //blockedSites.reduce((accumulator, site, index) => {
       for (var i = 0; i < blockedSites.length; i++) {
         let site = blockedSites[i]
         if(checkSafeUrl(site)){
@@ -169,13 +168,11 @@ async function enforceBlockedSites(data){
           })
         }
         else {
-          //console.warn("Ignoring site "+site+" as it is not safe.");
           await logData("warning","Ignoring "+site+" as it is not safe");
         }
       }
     }
     else{
-      //newrules = blockedSites.reduce((accumulator, site, index) => {
       for (var i = 0; i < blockedSites.length; i++) {
         let site = blockedSites[i]
         if(checkSafeUrl(site)){
@@ -187,7 +184,6 @@ async function enforceBlockedSites(data){
             });
         }
         else {
-          //console.warn("Ignoring site "+site+" as it is not safe.");
           await logData("warning","Ignoring "+site+" as it is not safe");
         }
       }
@@ -199,7 +195,6 @@ async function enforceBlockedSites(data){
 
     //Check for tabs open for any blocked sites
     let tabs = await chrome.tabs.query({});
-    //let promises = tabs.forEach(tab => {
     for (var i = 0; i < tabs.length; i++) {
       try{
         await chrome.scripting.executeScript({
@@ -235,7 +230,6 @@ async function enforceBlockedSites(data){
         }
       }
     }
-    //return Promise.all(promises);
   }
 }
 async function updateEnrollData(enrollCode){
@@ -399,7 +393,6 @@ function relaunchClosedEnforceWindow(windowId) {
   }
 }
 function updateWindowTopRule(url){
-  //console.log("updateCalled");
   return blockingWindow(url, (window) => {
     WindowTopRuleData = {
       windowId: window.id,
@@ -409,7 +402,6 @@ function updateWindowTopRule(url){
   });
 }
 function setWindowTopRule(url){
-  //console.log("windowSet")
   if (url != WindowTopRuleData.url){
     return blockingWindow(url, (window) => {
       /*if (WindowTopRuleData.windowId != null){
@@ -497,6 +489,7 @@ async function checkPermissions() {
 
 /*---Chrome Messaging Functions---*/
 async function addEnrollment(enrollCode){
+  await chrome.storage.local.clear()
   await updateEnrollData(enrollCode);
   await setBlockedSites();
 }
@@ -509,7 +502,9 @@ async function removeEnrollment(headers){
     if (response.ok) {
       let data = await response.blob()
       if (await verifyMagicPacket(data)){
+        let enrollCode = (await chrome.storage.local.get("enrollData")).enrollData.enrollCode;
         await chrome.storage.local.clear()
+        await chrome.storage.local.set({"rmvEnroll": enrollCode});
         await setBlockedSites();
       }
       else{
@@ -562,10 +557,7 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request === 'getBlockedSites') {
       sendResponse(Object.fromEntries(activeBlockedSites));
-    }/*
-    else if(request === 'getRuntimeLog'){
-      sendResponse(runtimeLog.join("<br>"));
-    }*/
+    }
     else if (request === 'fileAccessSchemeExtPageSwitch') {
       fileAccessSchemeExtPageSwitch();
       sendResponse(true);

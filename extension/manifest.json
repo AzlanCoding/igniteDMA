@@ -14,6 +14,9 @@
     "https://ignitedma.mooo.com/*",
     "<all_urls>"
   ],
+  "storage": {
+    "managed_schema": "managedStorageSchema.json"
+  },
   "action": {
     "default_popup": "popup.html"
   },
