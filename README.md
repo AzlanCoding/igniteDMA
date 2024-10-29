@@ -81,7 +81,10 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Server & Extension: Use a `Backup Removal Pin` instead of the `Master Pin` to remove deleted enrollments.
 - [x] Server & Extension: Return HTTP 304 when resource not modified
 - [x] Extension (`background.js`): Use `async` and `await` instead of `.then()` so that can use `chrome.storage.session` for logs
-- [x] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up. [NOT TESTED]
+- [x] Extension (`background.js`): Use `chrome.storage.managed` so that admin can predefine Enrollment Code and skip set up.
+- [ ] [PRIORITY] Extension (`background.js`): Make `fileAccessScheme` mandatory only when user want's to view local files. (See [this discussion](https://issues.chromium.org/issues/40300638))
+- [ ] [PRIORITY] Add policy configuration examples in `README.md`
+- [ ] Extension (`background.js`): Show popup to warn user of unsaved work before blocking website.
 - [ ] Server (`profile.html`): Better CSS animations.
 - [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students

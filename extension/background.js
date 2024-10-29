@@ -119,7 +119,7 @@ async function syncEnrollment(){
     if (enrollCode.EnrollCode){
       let removedEnrollCode = await chrome.storage.local.get("rmvEnroll");
       if (enrollCode != removedEnrollCode.rmvEnroll){
-        addEnrollment(enrollCode);
+        addEnrollment(enrollCode.EnrollCode);
       }
     }
     await logData("info", "User not connected to enrollment. No enrollment to sync.");
@@ -502,9 +502,9 @@ async function removeEnrollment(headers){
     if (response.ok) {
       let data = await response.blob()
       if (await verifyMagicPacket(data)){
-        let enrollCode = (await chrome.storage.local.get("enrollData")).enrollData.enrollCode;
+        let enrollData = await chrome.storage.local.get("enrollData");
         await chrome.storage.local.clear()
-        await chrome.storage.local.set({"rmvEnroll": enrollCode});
+        await chrome.storage.local.set({"rmvEnroll": enrollData.enrollData.enrollCode});
         await setBlockedSites();
       }
       else{
