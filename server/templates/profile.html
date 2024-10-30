@@ -115,6 +115,7 @@
     #notifications .message{
       opacity: 0.9;
       box-shadow: 5px 5px rgba(10,10,10,.2);
+      animation: showNotifi 0.75s ease-out;
     }
     .hidden{
       display: none !important;
@@ -662,12 +663,21 @@
       profileModalData = null;
     }*/
     function closeModalCard(elm){
-      $(elm).parent().parent().parent().removeClass("is-active");
+      $(elm).parent().parent().parent().addClass("is-closing");
+      setTimeout(()=>{
+        $(elm).parent().parent().parent().removeClass("is-active");
+        $(elm).parent().parent().parent().removeClass("is-closing");
+      }, 1000);
       profileModalData = null;
     }
     function closeModalFormCard(elm){
       event.preventDefault();
-      $(elm).parent().parent().parent().removeClass("is-active");
+      $(elm).parent().parent().parent().addClass("is-closing");
+      setTimeout(()=>{
+        $(elm).parent().parent().parent().removeClass("is-active");
+        $(elm).parent().parent().parent().removeClass("is-closing");
+      }, 1000);
+
       profileModalData = null;
     }
     function closeNotifi(elm){
@@ -709,7 +719,12 @@
     }
     function renderModal(profileCode, edit){
       if (profileCode == 'default' && !edit){
-        $('#profileModal').removeClass('is-active');
+        $('#profileModal').addClass('is-closing');
+        setTimeout(()=>{
+          $('#profileModal').removeClass('is-active');
+          $('#profileModal').removeClass('is-closing');
+        }, 1000);
+
       }
       $('#profileModal #loading').removeClass('hidden');
       $('#profileModal #profileViewerButtons').addClass('hidden');

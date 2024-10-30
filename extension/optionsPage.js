@@ -129,7 +129,11 @@ function setupEnrollment(){
 function masterPin() {
   document.getElementById("removeEnrollmentBtn").classList.add("is-loading");
   return sendExternalAction({action: "rmvEnroll", headers: {'enrollCode': enrollData.enrollCode, 'PIN': document.getElementById('masterPinInput').value}}).then(() => {
-    document.getElementById("enrollModal").classList.remove("is-active");
+    document.getElementById("enrollModal").classList.add('is-closing');
+    setTimeout(() => {
+      document.getElementById("enrollModal").classList.remove('is-active');
+      document.getElementById("enrollModal").classList.remove('is-closing');
+    }, 1000);
     document.getElementById('masterPinInput').value = "";
     notifi("is-success","Success","Successfully Removed Enrollment!");
     //Dynamic Refresh Enabled! No need code below.
@@ -160,7 +164,10 @@ function notifi(status, title, text){
   let closeBtn = document.createElement('button');
   closeBtn.classList = "delete";
   closeBtn.onclick = (event) => {
-    event.target.parentElement.parentElement.remove()
+    event.target.parentElement.parentElement.classList.add("is-closing");
+    setTimeout(()=>{
+      event.target.parentElement.parentElement.remove();
+    },1000);
   }
   header.appendChild(closeBtn);
   notifi.appendChild(header);
@@ -354,7 +361,12 @@ function UI_Init(){
 
   Array.from(document.getElementsByClassName("debugModalClose")).forEach((elm) => {
     elm.addEventListener("click", () => {
-      document.getElementById("debugModal").classList.remove('is-active');
+      document.getElementById("debugModal").classList.add('is-closing');
+      setTimeout(()=> {
+        document.getElementById("debugModal").classList.remove('is-active');
+        document.getElementById("debugModal").classList.remove('is-closing');
+      }, 1000);
+
     });
   });
 
@@ -378,7 +390,12 @@ function UI_Init(){
   /*---Main UI---*/
   Array.from(document.getElementsByClassName("enrollModalClose")).forEach((elm) => {
     elm.addEventListener("click", () => {
-      document.getElementById("enrollModal").classList.remove('is-active');
+      document.getElementById("enrollModal").classList.add('is-closing');
+      setTimeout(()=>{
+        document.getElementById("enrollModal").classList.remove('is-active');
+        document.getElementById("enrollModal").classList.remove('is-closing');
+      }, 1000);
+
     });
   });
 
@@ -388,7 +405,11 @@ function UI_Init(){
 
   Array.from(document.getElementsByClassName("profileModalClose")).forEach((elm) => {
     elm.addEventListener("click", () => {
-      document.getElementById("profileModal").classList.remove('is-active');
+      document.getElementById("profileModal").classList.add('is-closing');
+      setTimeout(()=>{
+        document.getElementById("profileModal").classList.remove('is-active');
+        document.getElementById("profileModal").classList.remove('is-closing');
+      }, 1000);
       profileModalCode = null;
     });
   });
