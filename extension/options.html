@@ -199,10 +199,13 @@
       @keyframes closeNotifi {
         0%{
           opacity: 0.9;
-
+          max-height: 20vh;
+          margin-bottom: var(--bulma-block-spacing);
         }
         100%{
           opacity: 0;
+          max-height: 0;
+          margin-bottom: 0;
         }
       }
       @keyframes showModal {

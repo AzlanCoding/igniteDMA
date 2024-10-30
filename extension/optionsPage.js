@@ -18,7 +18,7 @@ checkAlreadyOpened();
 function fixTimeString(timeString){
   let a = timeString.split(",");
   let mm,dd,yyyy;
-  [mm,dd,yyyy] = a[0].split("/")
+  [mm,dd,yyyy] = a[0].split("/");
   a.shift();
   return [dd,mm,yyyy].join("/") + "," + a
 }
@@ -133,7 +133,7 @@ function masterPin() {
     setTimeout(() => {
       document.getElementById("enrollModal").classList.remove('is-active');
       document.getElementById("enrollModal").classList.remove('is-closing');
-    }, 1000);
+    }, 750);
     document.getElementById('masterPinInput').value = "";
     notifi("is-success","Success","Successfully Removed Enrollment!");
     //Dynamic Refresh Enabled! No need code below.
@@ -167,7 +167,7 @@ function notifi(status, title, text){
     event.target.parentElement.parentElement.classList.add("is-closing");
     setTimeout(()=>{
       event.target.parentElement.parentElement.remove();
-    },1000);
+    },750);
   }
   header.appendChild(closeBtn);
   notifi.appendChild(header);
@@ -365,7 +365,7 @@ function UI_Init(){
       setTimeout(()=> {
         document.getElementById("debugModal").classList.remove('is-active');
         document.getElementById("debugModal").classList.remove('is-closing');
-      }, 1000);
+      }, 750);
 
     });
   });
@@ -394,7 +394,7 @@ function UI_Init(){
       setTimeout(()=>{
         document.getElementById("enrollModal").classList.remove('is-active');
         document.getElementById("enrollModal").classList.remove('is-closing');
-      }, 1000);
+      }, 750);
 
     });
   });
@@ -409,7 +409,7 @@ function UI_Init(){
       setTimeout(()=>{
         document.getElementById("profileModal").classList.remove('is-active');
         document.getElementById("profileModal").classList.remove('is-closing');
-      }, 1000);
+      }, 750);
       profileModalCode = null;
     });
   });
