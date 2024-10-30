@@ -85,6 +85,7 @@ Even if you cannot enforce this setting, it will by default have access to all s
 - [x] Server (`profile.html`): Better CSS animations.
 - [ ] [PRIORITY] Extension (`background.js`): Make `fileAccessScheme` mandatory only when user want's to view local files. (See [this discussion](https://issues.chromium.org/issues/40300638))
 - [ ] [PRIORITY] Add policy configuration examples in `README.md`
+- [ ] [PRIORITY] Extension (`options.html`): Show a red banner when extension cannot contact server.
 - [ ] Extension (`background.js`): Show popup to warn user of unsaved work before blocking website.
 - [ ] GitHub Pages for this project (docs).
 - [ ] Server: Create "Print Profile Code" feature to make it easier to share profile code with students

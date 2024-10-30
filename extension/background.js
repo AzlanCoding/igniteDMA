@@ -1,5 +1,5 @@
-//let updateHost = "https://ignitedma.mooo.com"//Production Server
-let updateHost = "http://127.0.0.1"//Development Server
+let updateHost = "https://ignitedma.mooo.com"//Production Server
+//let updateHost = "http://127.0.0.1"//Development Server
 
 let useLegacyBlocking = false;
 let activeBlockedSites;//Will be an Map but currently null
