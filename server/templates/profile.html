@@ -279,8 +279,8 @@
           </tr>
           <tr>
             <th>Removal PIN</th>
-            <td>
-              <p id="enrollPin" style="display: inline;vertical-align: bottom;">••••••••</p>
+            <td style="user_select: none">
+              <p id="enrollPin" style="display: inline;vertical-align: bottom;user_select: text">••••••••</p>
               <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="enrollPinToggle(this)">visibility</button>
             </td>
           </tr>
@@ -596,7 +596,7 @@
       clearTimeout(enrollPinTimeout);
       if ($(elm).text() == "visibility"){
         let data = JSON.parse($('#userData').html());
-        $("#enrollPin").text(data["removalPin"]);
+        $("#enrollPin").html(data["removalPin"]);
         $(elm).text("visibility_off");
         enrollPinTimeout = setTimeout(() => {
           enrollPinClose(elm);
