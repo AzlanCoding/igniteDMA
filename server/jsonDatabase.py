@@ -1,6 +1,37 @@
-import json, datetime
+import json, datetime, os
 from .models import EnrollData
 from . import db
+
+def setUpJsonDb():
+    os.makedirs("./server/storage/profiles/", exist_ok=True)
+    os.makedirs("./server/storage/schools/", exist_ok=True)
+    os.makedirs("./server/storage/cache/", exist_ok=True)
+    for f in os.listdir("./server/storage/cache/"):
+        os.remove(os.path.join("./server/storage/cache/", f))
+
+
+class Cache():
+    """Caching System"""
+    def getFromCache(file):
+        if os.path.isfile("./server/storage/cache/"+file+".json"):
+            with open("./server/storage/cache/"+file+".json", 'r') as f:
+                data = json.load(f)
+                f.close()
+                return data
+        else:
+            return None
+
+    def setCache(file, data):
+        with open("./server/storage/cache/"+file+".json", 'w', encoding='utf8') as f:
+            f.write(json.dumps(data))
+            f.close()
+
+    def invalidateCache(file):
+        try:
+            os.remove("./server/storage/cache/"+file+".json")
+        except FileNotFoundError:
+            pass
+
 
 class Loader():
     """Functions to load diffrent profiles/enroll data"""
@@ -11,13 +42,17 @@ class Loader():
             return data
 
     def loadEnrollment(enrollCode):
+        cachedFile = Cache.getFromCache('school'+enrollCode.lower())
+        if cachedFile:
+            return cachedFile
         with open('./server/storage/schools/'+enrollCode.lower()+'.json', 'r') as f:
             base = json.load(f)
             f.close()
             profileData = {}
             for profileCode in base["profiles"]:
-                profileData.update({profileCode:Loader.loadProfile(profileCode)})
+                profileData.update({profileCode: Loader.loadProfile(profileCode)})
             base["profiles"] = profileData
+            Cache.setCache('school'+enrollCode.lower(),base)
             return base
 
     def loadEnrollmentRaw(enrollCode):
@@ -43,6 +78,7 @@ class Setter():
     def saveEnroll(enrollCode, data):
         data["lastUpdated"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
         Setter.__setData("schools/"+enrollCode.lower(), data)
+        Cache.invalidateCache('school'+enrollCode.lower())
 
     def setEnrollMasterPin(enrollCode, newPin):
         EnrollData.query.get(enrollCode.lower()).masterPin = newPin

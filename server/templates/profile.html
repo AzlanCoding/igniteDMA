@@ -115,6 +115,7 @@
     #notifications .message{
       opacity: 0.9;
       box-shadow: 5px 5px rgba(10,10,10,.2);
+      animation: showNotifi 0.75s ease-out;
     }
     .hidden{
       display: none !important;
@@ -662,12 +663,21 @@
       profileModalData = null;
     }*/
     function closeModalCard(elm){
-      $(elm).parent().parent().parent().removeClass("is-active");
+      $(elm).parent().parent().parent().addClass("is-closing");
+      setTimeout(()=>{
+        $(elm).parent().parent().parent().removeClass("is-active");
+        $(elm).parent().parent().parent().removeClass("is-closing");
+      }, 750);
       profileModalData = null;
     }
     function closeModalFormCard(elm){
       event.preventDefault();
-      $(elm).parent().parent().parent().removeClass("is-active");
+      $(elm).parent().parent().parent().addClass("is-closing");
+      setTimeout(()=>{
+        $(elm).parent().parent().parent().removeClass("is-active");
+        $(elm).parent().parent().parent().removeClass("is-closing");
+      }, 750);
+
       profileModalData = null;
     }
     function closeNotifi(elm){
@@ -709,7 +719,12 @@
     }
     function renderModal(profileCode, edit){
       if (profileCode == 'default' && !edit){
-        $('#profileModal').removeClass('is-active');
+        $('#profileModal').addClass('is-closing');
+        setTimeout(()=>{
+          $('#profileModal').removeClass('is-active');
+          $('#profileModal').removeClass('is-closing');
+        }, 750);
+
       }
       $('#profileModal #loading').removeClass('hidden');
       $('#profileModal #profileViewerButtons').addClass('hidden');
@@ -834,7 +849,7 @@
         return enrollTime.start + " - " + enrollTime.end;
       }
     }
-    function parseDays(enforceDays){
+    function parseDays(enforceDays, shortForm){
       let days = enforceDays.split('').sort().join('');
       if (days == "0123456"){
         return "Everyday";
@@ -844,6 +859,10 @@
       }
       else if (days == "06") {
         return "Weekends";
+      }
+      else if (shortForm){
+        const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thurs", "Fri", "Sat"];
+        return days.split('').map(char => daysOfWeek[parseInt(char)]).join(', ');
       }
       else{
         const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -1016,7 +1035,7 @@
         profileBox.find('.addIcon').remove();
         profileBox.find('.editButtonContain').removeClass('hidden');
         profileBox.find('.profileInfo .title').text(profileData.name);
-        profileBox.find('.profileInfo .subtitle').html(parseDays(profileData.enforceDays)+"<br>"+parseTime(profileData.enforceTime));
+        profileBox.find('.profileInfo .subtitle').html(parseDays(profileData.enforceDays, true)+"<br>"+parseTime(profileData.enforceTime));
         if (!profileData.enabled){
           profileBox.find('.profileBottom .is-success').addClass('hidden');
           profileBox.find('.profileBottom .is-danger').removeClass('hidden');

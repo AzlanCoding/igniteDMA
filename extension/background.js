@@ -1,7 +1,6 @@
 let updateHost = "https://ignitedma.mooo.com"//Production Server
 //let updateHost = "http://127.0.0.1"//Development Server
 
-let runtimeLog = new Array();
 let useLegacyBlocking = false;
 let activeBlockedSites;//Will be an Map but currently null
 let activeProfiles;//Will be an Map but currently null
@@ -38,7 +37,6 @@ function checkProfileActive(data){
   if (!data.enabled){
     return false;
   }
-  //console.dir(data);
   let [startHour, startMin] = data.enforceTime.start.split(":");
   let [endHour, endMin] = data.enforceTime.end.split(":");
   let d = new Date();
@@ -76,70 +74,76 @@ function checkSafeUrl(url){
 
 /*---Catagory 3 Utilities---*/
 //Utilities that get data and call other Utilities that make changes to the system
-function getProfiles(type){
-  return chrome.storage.local.get("enrollData").then((result) => {
-    return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
-  });
+async function getProfiles(type){
+  let result = await chrome.storage.local.get("enrollData")
+  return (result.enrollData ? filterProfileTypes(result.enrollData.profiles, type) : {});
 }
-function setBlockedSites(forceRefresh){
-  //console.log("checking blocked sites changes");
-  logData("info","Checking for blocked sites to enforce");
-  return getProfiles("webfilterV1").then((classList) => {
-    let blockedSitesCache = new Map();
-    let activeProfilesCache = new Map();
-    Object.entries(classList).forEach(([classId, data]) => {
-      if (checkProfileActive(data)){
-        activeProfilesCache.set(classId, data.name);
-        data.blockedSites.forEach((site) => {
-          blockedSitesCache.set(site, data.name)
-        });
+async function setBlockedSites(forceRefresh){
+  await logData("info","Checking for blocked sites to enforce");
+  let profileList = await getProfiles("webfilterV1");
+  let blockedSitesCache = new Map();
+  let activeProfilesCache = new Map();
+  let profileEntires = Object.entries(profileList);
+  for (var i = 0; i < profileEntires.length; i++) {
+    let classId, data;
+    [classId, data] = profileEntires[i];
+    if (checkProfileActive(data)){
+      activeProfilesCache.set(classId, data.name);
+      data.blockedSites.forEach((site) => {
+        blockedSitesCache.set(site, data.name)
+      });
+    }
+    else{
+      await logData("info","Profile "+data.name+" is not active");
+    }
+  }
+  if (forceRefresh || !areMapsEqual(activeProfilesCache, activeProfiles)){
+    activeProfiles = activeProfilesCache;
+  }
+  if (forceRefresh || !areMapsEqual(blockedSitesCache,activeBlockedSites)){
+    activeBlockedSites = blockedSitesCache;
+    return enforceBlockedSites(blockedSitesCache);
+  }
+}
+async function syncEnrollment(){
+  let result = await chrome.storage.local.get("enrollData");
+  if (result.enrollData){
+    if (await updateEnrollData(result.enrollData.enrollCode)){
+      await setBlockedSites();//Only check for blockedSites again if got changes
+    }
+  }
+  else{
+    //User not registered in any enrollment
+    //// NOTE: (TO SELF) Manage chrome policies in /etc/opt/chrome/policies/managed/test_policy.json
+    let enrollCode = await chrome.storage.managed.get("EnrollCode");
+    if (enrollCode.EnrollCode){
+      let removedEnrollCode = await chrome.storage.local.get("rmvEnroll");
+      if (enrollCode != removedEnrollCode.rmvEnroll){
+        addEnrollment(enrollCode.EnrollCode);
       }
-      else{
-        //console.log("profile "+data.name+" is not active.");
-        logData("info","Profile "+data.name+" is not active");
-      }
-    });
-    if (forceRefresh || !areMapsEqual(activeProfilesCache, activeProfiles)){
-      activeProfiles = activeProfilesCache;
     }
-    if (forceRefresh || !areMapsEqual(blockedSitesCache,activeBlockedSites)){
-      activeBlockedSites = blockedSitesCache;
-      return enforceBlockedSites(blockedSitesCache);
-    }
-  });
+    await logData("info", "User not connected to enrollment. No enrollment to sync.");
+  }
 }
-function syncEnrollment(){
-  return chrome.storage.local.get("enrollData").then((result) => {
-    if (result.enrollData){
-      return updateEnrollData(result.enrollData.enrollCode)
-    }
-    /*else {
-      throw new Error("No enrollData to start sync!")
-    }*/
-  }).then(setBlockedSites);
-}
-function setBlockedSitesLoop(){
-  return setBlockedSites().then(() => {
-    let now = new Date();
-    let delay = (61 - now.getSeconds()) * 1000;//Runs every minute + 1 second delay just in case
-    return setTimeout(setBlockedSitesLoop,delay)
-  });
+async function setBlockedSitesLoop(){
+  await setBlockedSites()
+  let now = new Date();
+  let delay = (61 - now.getSeconds()) * 1000;//Runs every minute + 1 second delay just in case
+  return setTimeout(setBlockedSitesLoop,delay)
 }
 
 /*---Catagory 4 Utilities---*/
 //Utilities that make changes to the system
-function enforceBlockedSites(data){
-  //console.log("Enforcing new blockedSites");
-  logData("info","Enforcing new set of blocked sites");
+async function enforceBlockedSites(data){
+  await logData("info","Enforcing new set of blocked sites");
   let blockedSites = Array.from(data.keys());
+  let oldRules = await chrome.declarativeNetRequest.getDynamicRules();
+  let oldRuleIds = oldRules.map(rule => rule.id);
   if (blockedSites.length == 0){
     //Remove all rules
-    return chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
-      const oldRuleIds = oldRules.map(rule => rule.id);
-      chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: oldRuleIds,
-        addRules: []
-      });
+    chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: oldRuleIds,
+      addRules: []
     });
   }
   else{
@@ -147,61 +151,54 @@ function enforceBlockedSites(data){
     //The setting "site access" is usually set to "on all sites" by default.
     //So, if students change it, the webfilter will not work.
     //Therefore, legacyBlocking is used when this setting is not avaliable.
-    // NOTE: priority set to 2 for future whiteLists
-    let newrules;
-    if (useLegacyBlocking){// TODO: reduce code repetition in this condition block.
-      logData("info","Using legacy blocking method!");
-      newrules = blockedSites.reduce((accumulator, site, index) => {
-        if (index == 1){
-          accumulator = new Array();
-        }
+    // NOTE: priority set to 2 just in case
+    /// NOTE: legacyBlocking used when more than 4990 rules needed.
+    //// NOTE: code repetition in this condition block meant for performace.
+    let newrules = new Array();
+    if (useLegacyBlocking || blockedSites.length >= 4990){
+      await logData("info","Using legacy blocking method!");
+      for (var i = 0; i < blockedSites.length; i++) {
+        let site = blockedSites[i]
         if(checkSafeUrl(site)){
-          accumulator.push({
-            id: index + 1,
+          newrules.push({
+            id: i + 1,
             priority: 2,
             action: { type: "block" },
             condition: { urlFilter: "||"+site+"/", resourceTypes: ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "object", "xmlhttprequest", "ping", "csp_report", "media", "websocket", "webtransport", "webbundle", "other"] }
           })
         }
         else {
-          //console.warn("Ignoring site "+site+" as it is not safe.");
-          logData("warning","Ignoring "+site+" as it is not safe");
+          await logData("warning","Ignoring "+site+" as it is not safe");
         }
-        return accumulator
-      });
+      }
     }
     else{
-      newrules = blockedSites.reduce((accumulator, site, index) => {
-        if (index == 1){
-          accumulator = new Array();
-        }
+      for (var i = 0; i < blockedSites.length; i++) {
+        let site = blockedSites[i]
         if(checkSafeUrl(site)){
-          accumulator.push({
-              id: index,
+          newrules.push({
+              id: i + 1,
               priority: 2,
               action: { type: "redirect", "redirect": { "url": (chrome.runtime.getURL("blocked.html")+"?profile="+encodeURI(data.get(site))+"&site="+encodeURI(site)) } },
               condition: { urlFilter: "||"+site+"/", resourceTypes: ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "object", "xmlhttprequest", "ping", "csp_report", "media", "websocket", "webtransport", "webbundle", "other"] }
             });
         }
         else {
-          //console.warn("Ignoring site "+site+" as it is not safe.");
-          logData("warning","Ignoring "+site+" as it is not safe");
+          await logData("warning","Ignoring "+site+" as it is not safe");
         }
-        return accumulator;
-      });
+      }
     }
-    chrome.declarativeNetRequest.getDynamicRules((oldRules) => {
-      const oldRuleIds = oldRules.map(rule => rule.id);
-      chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: oldRuleIds,
-        addRules: newrules
-      });
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: oldRuleIds,
+      addRules: newrules
     });
+
     //Check for tabs open for any blocked sites
-    return chrome.tabs.query({}, (tabs) => {
-      let promises = tabs.map(tab => {
-        return chrome.scripting.executeScript({
-          target: { tabId: tab.id, allFrames: true},
+    let tabs = await chrome.tabs.query({});
+    for (var i = 0; i < tabs.length; i++) {
+      try{
+        await chrome.scripting.executeScript({
+          target: { tabId: tabs[i].id, allFrames: true},
           func: (data) => {
             //console.log("Checking: "+window.location.href);
             let blocked = false;
@@ -215,88 +212,91 @@ function enforceBlockedSites(data){
             });
           },
           args: [Object.fromEntries(data)]//It won't work if I send a map and idk why
-        }).catch((err) => {
-          if (err.message && err.message.includes("Cannot access")){
-            // NOTE: if no fileAccessScheme permission, `file://` URLs cannot scan
-            if (tab.url.startsWith("file://")){
-              logData("warning","No fileAccessScheme permission. Removing tab!");
-              chrome.tabs.remove(tab.id)
-            }
-            else{
-              logData("warning","Unable to inject script into tab due to error: "+err.message);
-              //console.log("Skipping inaccesible webpage\n"+err.message);
-            }
+        });
+      }
+      catch(err){
+        if (err.message && err.message.includes("Cannot access")){
+          // NOTE: if no fileAccessScheme permission, `file://` URLs cannot scan
+          if (tabs[i].url.startsWith("file://")){
+            await logData("warning","No fileAccessScheme permission. Removing tab!");
+            chrome.tabs.remove(tab.id)
           }
           else{
-            //console.error("Failed to inject script into tab");
-            logData("warning","Unable to inject script into tab due to unknown error");
+            await logData("warning","Unable to inject script into tab due to error: "+err.message);
           }
-        });
-      });
-      return Promise.all(promises);
-    });
+        }
+        else{
+          await logData("warning","Unable to inject script into tab due to unknown error");
+        }
+      }
+    }
   }
 }
-function updateEnrollData(enrollCode){
-  logData("info","Checking for enrollment data updates");
-  return chrome.storage.local.get("enrollData").then((result) => {
-    return fetch(updateHost+"/api/v1/enrollment/"+enrollCode.toLowerCase(), {cache: "no-cache"}).then((response) => {
-      if (response.ok){
-        return response.json();
-      }
-      else if (response.status == 404){
-        logData("error","Server cannot find enrollment");
-        throw new Error("Cannot find enrollment!\nPlease press the <code>Remove Enrollment</code> button, enter the Master PIN provided by your admin and press <code>Remove Enrollment</code>.<br>Status code: "+response.status);
-        //// TODO: Make popup to decide whether to remove profile
-      }
-      else {
-        logData("error","Server responded with "+response.status+" during enrollment fetch");
-        throw new Error("ok something just went like REALLY WRONG.<br>Status Code: " + response.status);
-      }
-    }).then((data) => {
-      /*if ((!result.enrollData) || (data.lastUpdated > result.enrollData.lastUpdateFetch)){
-        data.lastSync = new Date().getTime();
-        data.lastUpdateFetch = new Date().getTime();
-        let save = new Object();
-        save.enrollData = data;
-        return chrome.storage.local.set(save);
-      }
-      else{
-        result.enrollData.lastSync = new Date().getTime();
-        return chrome.storage.local.set(result);
-      }*/
-      data.lastSync = new Date().getTime();
-      //data.lastUpdateFetch = new Date().getTime();
-      let save = new Object();
-      save.enrollData = data;
-      return chrome.storage.local.set(save).catch((e) => {
-        // NOTE: QUOTA_BYTES_PER_ITEM quota when using chrome.storage.sync.set
-        logData("error","Failed to save enrollment data");
-        throw new Error("Failed to save enrollment data");
-      })
-    }).catch((e) => {
-      if (e.message.includes("Failed to fetch")){
-        logData("error","Unable to contact server for enrollment updates");
-        throw new Error("Unable to contact server");
-      }
-      else{
-        logData("error","Unknown error: "+e.message);
-        throw e;
-      }
-    });
-  });
-}
-function logData(level, message){
-  if (runtimeLog.length >= 100){
-    runtimeLog = runtimeLog.slice(50);
-    logData("info", "cleared log");
+async function updateEnrollData(enrollCode){
+  await logData("info","Checking for enrollment data updates");
+  let gotChanges = true;
+  let initialData = await chrome.storage.local.get("enrollData");
+  try{
+    let response = await fetch(updateHost+"/api/v1/enrollment/"+enrollCode.toLowerCase(), {cache: "no-cache", headers: {"lastSync": initialData.enrollData ? initialData.enrollData.lastSync : -1}});
+    let data;
+    if (response.ok){
+      data = await response.json();
+      await logData("info", "Enrollment data changes reported")
+    }
+    else if (response.status == 304) {//Resource Not Modified
+      data = initialData.enrollData;
+      gotChanges = false
+      await logData("info", "No reported changes with enrollment data")
+    }
+    else if (response.status == 404){
+      await logData("error","Server cannot find enrollment");
+      throw new Error("Cannot find enrollment!\nPlease press the <code>Remove Enrollment</code> button, enter the Backup Removal PIN provided by your admin and press <code>Remove Enrollment</code>.");
+      //// TODO: Make popup to decide whether to remove profile
+    }
+    else {
+      await logData("error","Server responded with "+response.status+" during enrollment fetch");
+      throw new Error("ok something just went like REALLY WRONG.<br>Status Code: " + response.status);
+    }
+
+    data.lastSync = new Date().getTime();
+    let save = new Object();
+    save.enrollData = data;
+    try{
+      // NOTE: QUOTA_BYTES_PER_ITEM quota when using chrome.storage.sync.set
+      // Thus, must save data to local.
+      await chrome.storage.local.set(save);
+      return gotChanges;
+    }
+    catch(e){
+      await logData("error","Failed to save enrollment data. Error: "+e.message);
+      throw new Error("Failed to save enrollment data. Error: "+e.message);
+    }
   }
+  catch(e){
+    if (e.message.includes("Failed to fetch")){
+      await logData("error","Unable to contact server for enrollment updates");
+      throw new Error("Unable to contact server");
+    }
+    else{
+      await logData("error","Unknown error: "+e.message);
+      throw e;
+    }
+  }
+}
+async function logData(level, message){
+  let data = await chrome.storage.session.get("runtimeLog")
+  let runtimeLog = data.runtimeLog || new Array();
   let dateTime = fixTimeString(new Date().toLocaleString("en-us",{
       hour12: false,
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit", second: "2-digit"
   }));
+  if (runtimeLog.length >= 100){
+    runtimeLog = runtimeLog.slice(50);
+    runtimeLog.push(`${dateTime} [INFO]: Log cleared.`);
+  }
   runtimeLog.push(`${dateTime} [${level.toUpperCase()}]: ${message}`);
+  await chrome.storage.session.set({runtimeLog: runtimeLog});
 }
 
 
@@ -311,14 +311,14 @@ let fileAccessSchemeExtPage = false;
 function fileAccessSchemeExtPageSwitch(){
   fileAccessSchemeExtPage = true;
 }
-function blockingWindow(url, callback){
-  logData("info","BlockingWindow Initilised!");
-  //console.log("blockingWindow launched");
+async function blockingWindow(url, callback){
   return chrome.windows.create({
     url: url,
     type: "popup",
     state: "fullscreen"
-  }, callback);
+  }, callback).then(async() => {
+    logData("info","BlockingWindow Initilised!");
+  })
 }
 function relaunchEnforceWindow(windowId) {
   let timenow = new Date().getTime();
@@ -393,7 +393,6 @@ function relaunchClosedEnforceWindow(windowId) {
   }
 }
 function updateWindowTopRule(url){
-  //console.log("updateCalled");
   return blockingWindow(url, (window) => {
     WindowTopRuleData = {
       windowId: window.id,
@@ -403,7 +402,6 @@ function updateWindowTopRule(url){
   });
 }
 function setWindowTopRule(url){
-  //console.log("windowSet")
   if (url != WindowTopRuleData.url){
     return blockingWindow(url, (window) => {
       /*if (WindowTopRuleData.windowId != null){
@@ -453,81 +451,80 @@ function removeWindowTopRule(){
 
 
 /*---Permission Checking Utilities---*/
-function fileAccessSchemeCheck(){
-  return chrome.extension.isAllowedFileSchemeAccess((result) => {
-    if(result){
-      if (WindowTopRuleData.windowId != null){
-        removeWindowTopRule();
-      }
+async function fileAccessSchemeCheck(){
+  if(await chrome.extension.isAllowedFileSchemeAccess()){
+    if (WindowTopRuleData.windowId != null){
+      removeWindowTopRule();
     }
-    else if (WindowTopRuleData.windowId == null) {
-      //console.log("launching fileAccessScheme")
-      logData("warning","No fileAccessScheme permission. Opening BlockingWindow");
-      setWindowTopRule(chrome.runtime.getURL("fileAccessSchemeNeeded.html"));
-    }
-  });
+  }
+  else if (WindowTopRuleData.windowId == null) {
+    await logData("warning","No fileAccessScheme permission. Opening BlockingWindow");
+    setWindowTopRule(chrome.runtime.getURL("fileAccessSchemeNeeded.html"));
+  }
 }
-function checkPermissions() {
-  return chrome.permissions.contains({"permissions": ["storage", "unlimitedStorage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]}, (result) => {
-    if (result) {
-      if (useLegacyBlocking){
-        useLegacyBlocking = false;
-        return setBlockedSites(true);
-      }
-      // NOTE: IF YOU ARE GOING TO CHANGE ANYTHING HERE,
-      //       MAKE SURE TO LOOK AT relaunchClosedEnforceWindow()
-      //       I KNOW IT'S STUPID BUT JUST IN CASE
-      fileAccessSchemeCheck();//Proceed with 2nd check
+async function checkPermissions() {
+  if (await chrome.permissions.contains({"permissions": ["storage", "unlimitedStorage", "declarativeNetRequest", "background", "tabs", "scripting"], origins: ["<all_urls>"]})) {
+    if (useLegacyBlocking){
+      useLegacyBlocking = false;
+      await setBlockedSites(true);
     }
-    else {
-      if (WindowTopRuleData.windowId == null){
-        logData("warning","Insufficient permissions. Opening BlockingWindow");
-        setWindowTopRule(chrome.runtime.getURL("permitNeeded.html"));
-      }
-      if (!useLegacyBlocking){
-        useLegacyBlocking = true;
-        return setBlockedSites(true);
-      }
+    // NOTE: IF YOU ARE GOING TO CHANGE ANYTHING HERE,
+    //       MAKE SURE TO LOOK AT relaunchClosedEnforceWindow()
+    //       I KNOW IT'S STUPID BUT JUST IN CASE
+    fileAccessSchemeCheck();//Proceed with 2nd check
+  }
+  else {
+    if (WindowTopRuleData.windowId == null){
+      await logData("warning","Insufficient permissions. Opening BlockingWindow");
+      setWindowTopRule(chrome.runtime.getURL("permitNeeded.html"));
     }
-  });
+    if (!useLegacyBlocking){
+      useLegacyBlocking = true;
+      await setBlockedSites(true);
+    }
+  }
 }
 
 
 
 /*---Chrome Messaging Functions---*/
-function addEnrollment(enrollCode){
-  return updateEnrollData(enrollCode).then(setBlockedSites);
+async function addEnrollment(enrollCode){
+  await chrome.storage.local.clear()
+  await updateEnrollData(enrollCode);
+  await setBlockedSites();
 }
 function syncNow(){
   return syncEnrollment();
 }
-function removeEnrollment(headers){
-  return fetch(updateHost+"/api/v1/masterPin",{cache: "no-cache", method:"post", headers: headers}).then((response) => {
+async function removeEnrollment(headers){
+  try{
+    let response = await fetch(updateHost+"/api/v1/masterPin",{cache: "no-cache", method:"post", headers: headers});
     if (response.ok) {
-      return response.blob().then((data) => {
-        return verifyMagicPacket(data).then((outcome) => {
-          if (outcome){
-            return chrome.storage.local.clear().then(setBlockedSites);
-          }
-          else{
-            logData("error","Failed to Verify Server's Identity!");
-            throw new Error("Failed to Verify Server's Identity!");
-          }
-        });
-      });
+      let data = await response.blob()
+      if (await verifyMagicPacket(data)){
+        let enrollData = await chrome.storage.local.get("enrollData");
+        await chrome.storage.local.clear()
+        await chrome.storage.local.set({"rmvEnroll": enrollData.enrollData.enrollCode});
+        await setBlockedSites();
+      }
+      else{
+        await logData("error","Failed to Verify Server's Identity!");
+        throw new Error("Failed to Verify Server's Identity!");
+      }
     }
     else {
       throw new Error("Incorrect PIN");
     }
-  }).catch((e) => {
+  }
+  catch(e){
     if (e.message.includes("Failed to fetch")){
-      logData("error","Unable to contact server");
+      await logData("error","Unable to contact server");
       throw new Error("Unable to contact server");
     }
     else{
       throw e;
     }
-  });
+  }
 }
 
 /*---Chrome Messaging Function Utilities---*/
@@ -536,22 +533,21 @@ function removeEnrollment(headers){
 //to remove the enrollment. A secret file is sent to the client and
 //the checksum of the file is measured to verify that the server
 //contacted is indeed the real server.
-function verifyMagicPacket(blob){
-  return blob.arrayBuffer().then((dataBuffer) => {
-    return crypto.subtle.digest('SHA-256', dataBuffer).then((hashBuffer) => {
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      const expectedChecksum = "139531df1cac2ff1b2be3fa5afde6a904cef6583de35efe07f1ddfe6f3228da5";
-      return hashHex === expectedChecksum;
-    });
-  });
+async function verifyMagicPacket(blob){
+  let dataBuffer = await blob.arrayBuffer()
+  let hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer)
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex === "139531df1cac2ff1b2be3fa5afde6a904cef6583de35efe07f1ddfe6f3228da5";
 }
-function handleExternalAction(sendResponse, func, args){
-  func(args).then((response) => {
+async function handleExternalAction(sendResponse, func, args){
+  try{
+    let response = await func(args);
     sendResponse({isErr: false, data: response});
-  }).catch((e) => {
+  }
+  catch(e){
     sendResponse({isErr: true, data: e.message});
-  });
+  }
 }
 
 
@@ -561,9 +557,6 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request === 'getBlockedSites') {
       sendResponse(Object.fromEntries(activeBlockedSites));
-    }
-    else if(request === 'getRuntimeLog'){
-      sendResponse(runtimeLog.join("<br>"));
     }
     else if (request === 'fileAccessSchemeExtPageSwitch') {
       fileAccessSchemeExtPageSwitch();
@@ -611,5 +604,5 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
     checkPermissions();
     let permissionsCheckInterval = setInterval(checkPermissions, 1000);
   }
-  logData("info","INITILISATION COMPLETE");
+  logData("info","INITILISATION COMPLETE");//This is async function but I can't put `await` here.
 }

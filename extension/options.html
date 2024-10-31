@@ -118,6 +118,10 @@
       #notifications .message{
         opacity: 0.9;
         box-shadow: 5px 5px rgba(10,10,10,.2);
+        animation: showNotifi 0.75s ease-out;
+      }
+      #notifications .message.is-closing{
+        animation: closeNotifi 0.75s ease forwards;
       }
       .hidden{
         display: none !important;
@@ -164,6 +168,83 @@
         height: 5em;
         position: relative;
         width: 5em;
+      }
+
+
+      .is-active .modal-card{
+        animation: showModal 0.75s ease-out;
+      }
+      .is-active .modal-background{
+        animation: showModalBg 0.75s ease-out;
+      }
+      .is-active.is-closing .modal-card{
+        animation: closeModal 0.75s ease-in forwards;
+      }
+      .is-active.is-closing .modal-background{
+        animation: closeModalBg 0.75s ease-in forwards;
+      }
+      @keyframes showNotifi {
+        0% {
+          transform: scale(0);
+          opacity: 0;
+        }
+        75% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      @keyframes closeNotifi {
+        0%{
+          opacity: 0.9;
+          max-height: 20vh;
+          margin-bottom: var(--bulma-block-spacing);
+        }
+        100%{
+          opacity: 0;
+          max-height: 0;
+          margin-bottom: 0;
+        }
+      }
+      @keyframes showModal {
+        0% {
+          transform: scale(0);
+        }
+        75% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      @keyframes closeModal {
+        0% {
+          transform: scale(1);
+        }
+        25% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(0);
+        }
+      }
+      @keyframes showModalBg {
+        0%{
+          opacity: 0;
+        }
+        100%{
+          opacity: 1;
+        }
+      }
+      @keyframes closeModalBg {
+        0%{
+          opacity: 1;
+        }
+        100%{
+          opacity: 0;
+        }
       }
 
     </style>
@@ -353,7 +434,7 @@
         </section>
         <footer class="modal-card-foot">
           <div class="buttons">
-            <button class="button is-warning is-outlined" id="logRefreshBtn">Refresh</button>
+            <!--button class="button is-warning is-outlined" id="logRefreshBtn">Refresh</button-->
             <button class="button debugModalClose">Close</button>
           </div>
         </footer>

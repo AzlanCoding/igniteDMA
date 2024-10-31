@@ -18,7 +18,7 @@ checkAlreadyOpened();
 function fixTimeString(timeString){
   let a = timeString.split(",");
   let mm,dd,yyyy;
-  [mm,dd,yyyy] = a[0].split("/")
+  [mm,dd,yyyy] = a[0].split("/");
   a.shift();
   return [dd,mm,yyyy].join("/") + "," + a
 }
@@ -76,7 +76,7 @@ function parseTime(enrollTime){
   }
 }
 
-function parseDays(enforceDays){
+function parseDays(enforceDays, shortForm){
   let days = enforceDays.split('').sort().join('');
   if (days == "0123456"){
     return "Everyday";
@@ -86,6 +86,10 @@ function parseDays(enforceDays){
   }
   else if (days == "06") {
     return "Weekends";
+  }
+  else if (shortForm){
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thurs", "Fri", "Sat"];
+    return days.split('').map(char => daysOfWeek[parseInt(char)]).join(', ');
   }
   else{
     const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -125,7 +129,11 @@ function setupEnrollment(){
 function masterPin() {
   document.getElementById("removeEnrollmentBtn").classList.add("is-loading");
   return sendExternalAction({action: "rmvEnroll", headers: {'enrollCode': enrollData.enrollCode, 'PIN': document.getElementById('masterPinInput').value}}).then(() => {
-    document.getElementById("enrollModal").classList.remove("is-active");
+    document.getElementById("enrollModal").classList.add('is-closing');
+    setTimeout(() => {
+      document.getElementById("enrollModal").classList.remove('is-active');
+      document.getElementById("enrollModal").classList.remove('is-closing');
+    }, 750);
     document.getElementById('masterPinInput').value = "";
     notifi("is-success","Success","Successfully Removed Enrollment!");
     //Dynamic Refresh Enabled! No need code below.
@@ -156,7 +164,10 @@ function notifi(status, title, text){
   let closeBtn = document.createElement('button');
   closeBtn.classList = "delete";
   closeBtn.onclick = (event) => {
-    event.target.parentElement.parentElement.remove()
+    event.target.parentElement.parentElement.classList.add("is-closing");
+    setTimeout(()=>{
+      event.target.parentElement.parentElement.remove();
+    },750);
   }
   header.appendChild(closeBtn);
   notifi.appendChild(header);
@@ -262,7 +273,7 @@ function renderUI(){
         profileBox.setAttribute("data-profile", profileCode);
         profileBox.getElementsByClassName("addIcon")[0].remove();
         profileBox.querySelector('.profileInfo .title').innerHTML = profileData.name;
-        profileBox.querySelector('.profileInfo .subtitle').innerHTML = parseDays(profileData.enforceDays)+"<br>"+parseTime(profileData.enforceTime);
+        profileBox.querySelector('.profileInfo .subtitle').innerHTML = parseDays(profileData.enforceDays, true)+"<br>"+parseTime(profileData.enforceTime);
         profileBox.onclick = (event) => {
           openProfileModal(profileCode);
         };
@@ -317,8 +328,8 @@ function updateUIloop(){
 
 
 function renderDebugUI(){
-  return chrome.runtime.sendMessage("getRuntimeLog").then((result) => {
-    let data = (result == '') ? "There are no logs at the moment" : result;
+  return chrome.storage.session.get("runtimeLog").then((result) => {
+    let data = (typeof result.runtimeLog == 'undefined') ? "There are no logs at the moment" : result.runtimeLog.join("<br>");
     let replaceFormatting = {
        "[INFO]": '<span class="has-text-info">[INFO]</span>',
        "[WARNING]": '<span class="has-text-warning">[WARNING]</span>',
@@ -339,18 +350,23 @@ function UI_Init(){
   document.getElementById("extVersion").innerHTML = "IgniteDMA v"+extensionVersion;
   document.getElementById("extVersionInfo").href = "https://github.com/AzlanCoding/igniteDMA/releases/tag/v"+extensionVersion;
   document.getElementById("extVersionInfo").innerHTML = "Release Notes";
-  document.getElementById("logRefreshBtn").addEventListener("click", (event) => {
+  /*document.getElementById("logRefreshBtn").addEventListener("click", (event) => {
     event.target.classList.add("is-loading");
     renderDebugUI().then(() => {
       event.target.classList.remove("is-loading");
     }).catch((e) => {
       notifi("is-danger", "Error", e);
     });
-  });
+  });*/
 
   Array.from(document.getElementsByClassName("debugModalClose")).forEach((elm) => {
     elm.addEventListener("click", () => {
-      document.getElementById("debugModal").classList.remove('is-active');
+      document.getElementById("debugModal").classList.add('is-closing');
+      setTimeout(()=> {
+        document.getElementById("debugModal").classList.remove('is-active');
+        document.getElementById("debugModal").classList.remove('is-closing');
+      }, 750);
+
     });
   });
 
@@ -358,20 +374,28 @@ function UI_Init(){
     document.getElementById("debugModal").classList.add('is-active');
     //This is stupid but, we have to wait for debugModal to go from display:none
     //to display:flex, so we can't scroll `logsContain` until it's actually visible.
-    renderDebugUI(() => {
+    setTimeout(() => {
+      document.getElementById("logsContain").scrollTop = document.getElementById("logsContain").scrollHeight;
+    }, 100);
+    /*setTimeout(() => {
       renderDebugUI().then(() => {//Update again just in case.
         document.getElementById("logsContain").scrollTop = document.getElementById("logsContain").scrollHeight;
       }).catch((e) => {
         notifi("is-danger", "Error", e);
       });
-    }, 100);
+    }, 100);*/
   });
 
 
   /*---Main UI---*/
   Array.from(document.getElementsByClassName("enrollModalClose")).forEach((elm) => {
     elm.addEventListener("click", () => {
-      document.getElementById("enrollModal").classList.remove('is-active');
+      document.getElementById("enrollModal").classList.add('is-closing');
+      setTimeout(()=>{
+        document.getElementById("enrollModal").classList.remove('is-active');
+        document.getElementById("enrollModal").classList.remove('is-closing');
+      }, 750);
+
     });
   });
 
@@ -381,7 +405,11 @@ function UI_Init(){
 
   Array.from(document.getElementsByClassName("profileModalClose")).forEach((elm) => {
     elm.addEventListener("click", () => {
-      document.getElementById("profileModal").classList.remove('is-active');
+      document.getElementById("profileModal").classList.add('is-closing');
+      setTimeout(()=>{
+        document.getElementById("profileModal").classList.remove('is-active');
+        document.getElementById("profileModal").classList.remove('is-closing');
+      }, 750);
       profileModalCode = null;
     });
   });
@@ -415,12 +443,19 @@ function UI_Init(){
 
 
 /*---Dynamic Refresh---*/
-chrome.storage.onChanged.addListener(() => {
-  loadData().then(() => {
-    renderUI();
-  }).catch((e) => {
-    notifi("is-danger", "Error", e);
-  });
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName == 'local'){
+    return loadData().then(() => {
+      renderUI();
+    }).catch((e) => {
+      notifi("is-danger", "Error", e);
+    });
+  }
+  else{
+    renderDebugUI().catch((e) => {
+      notifi("is-danger", "Error", e);
+    });
+  }
 });
 
 

@@ -4,7 +4,7 @@ from flask_login import LoginManager
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+assert load_dotenv(), "Unable to locate environments file."
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
