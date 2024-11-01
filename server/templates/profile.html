@@ -1023,7 +1023,7 @@
         msg.innerHTML = "This profile does not have any blocked sites configured.";
         document.getElementById("profileBlockedSites").appendChild(msg);
       }
-      let data = JSON.parse($('#userData').html());
+      let data = JSON.parse($('#userData').text());
       $('#enrollName').text(data.enrollName);
       $('#enrollNameEditField').val(data.enrollName);
       $('#enrollCode').text(data.enrollCode.toUpperCase());
