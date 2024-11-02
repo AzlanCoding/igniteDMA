@@ -17,27 +17,29 @@ def index():
 @main.route('/profile')
 @login_required
 def profile():
-    enrollId = current_user.enrollId
-    data = Loader.loadEnrollment(enrollId)
-    data['removalPin'] = Loader.getEnrollMasterPin(enrollId)
-    return render_template('profile.html', data=json.dumps(data))
+    #enrollId = current_user.enrollId
+    #data = Loader.loadEnrollment(enrollId)
+    #data['removalPin'] = Loader.getEnrollMasterPin(enrollId)
+    #return render_template('profile.html', data=json.dumps(data))
+    return render_template('profile.html', data=json.dumps(Loader.loadEnrollmentPriv(current_user.enrollId)))
+
 
 @main.route('/profile/updateProfile', methods=['POST'])
 @login_required
 def profile_post():
     # NOTE: formEntries also includes 'editState', but it can be None.
-    formEntries = ['profileCode','profileLastUpdated','profileNameEdit','profileType','editTimeStart','editTimeEnd','blockedSitesList']
+    formEntries = ['profileCode','profileLastModified','profileNameEdit','profileType','editTimeStart','editTimeEnd','blockedSitesList']
     for entry in formEntries:
         if request.form.get(entry) == None:
             abort(400)#Insufficient form data
             return
 
     enrollData = Loader.loadEnrollmentRaw(current_user.enrollId)
-    if not ((request.form.get("profileCode") == 'default') or (request.form.get("profileCode") in enrollData['profiles'])):
+    if not ((request.form.get("profileCode") == 'default') or (os.path.isfile("./server/storage/schools/"+current_user.enrollId+"/profiles/"+request.form.get("profileCode")+".json"))):
         abort(403)#User has no access to edit the profile
         return
 
-    if not Checker.checkNewProfileValidity(request.form.get("profileCode"), request.form.get("profileLastUpdated")):
+    if ((request.form.get("profileCode") != 'default') and (not (Checker.checkNewProfileValidity(current_user.enrollId, request.form.get("profileCode"), request.form.get("profileLastModified"))))):
         return "Error: Someone edited the profile while you were editing it, and then saved it before you could save it."
         # TODO: Create page to decide whether to overwrite or not.
 
@@ -60,16 +62,20 @@ def profile_post():
 
     if request.form.get("profileCode") == 'default':
         assert current_user.enrollId
+        #newProfileCode = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
+        #while (os.path.isfile("./server/storage/profiles/"+newProfileCode+'.json')):
+        #    newProfileCode = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
+        profilesDir = "./server/storage/schools/"+current_user.enrollId+"/profiles/"
         newProfileCode = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
-        while (os.path.isfile("./server/storage/profiles/"+newProfileCode+'.json')):
+        while (os.path.isfile(os.path.join(profilesDir, newProfileCode+'.json'))):
             newProfileCode = ''.join(random.choice(string.ascii_lowercase) for i in range(8))
-        Setter.saveProfile(newProfileCode, data)
-        enrollData["profiles"].append(newProfileCode)
+        Setter.saveProfile(current_user.enrollId, newProfileCode, data)
+        #enrollData["profiles"].append(newProfileCode)
         Setter.saveEnroll(current_user.enrollId, enrollData)#Update last modified
         flash("New profile created successfully!")
     else:
+        Setter.saveProfile(current_user.enrollId, request.form.get("profileCode"), data);
         Setter.saveEnroll(current_user.enrollId, enrollData)#Update last modified
-        Setter.saveProfile(request.form.get("profileCode"), data);
         flash("Profile updated successfully!")
 
     # NOTE: Setter.saveEnroll MUST be called anyway so that enroll cache is invalidated
@@ -81,7 +87,9 @@ def profile_post():
 def changeEnrollPin():
     if request.form.get('PIN'):
         assert current_user.enrollId
-        Setter.setEnrollMasterPin(current_user.enrollId, request.form.get('PIN'))
+        data = Loader.loadEnrollmentPriv(current_user.enrollId, privOnly=True)
+        data["RemovalPin"] = request.form.get('PIN')
+        Setter.saveEnrollPriv(current_user.enrollId, data)
         flash("Enrollment Removal PIN changed successfully!")
         return redirect(url_for('main.profile'))
     else:
@@ -92,15 +100,23 @@ def changeEnrollPin():
 def removeProfile():
     if request.form.get('profileCode') and request.form.get('profileCode') != "default":
         assert current_user.enrollId
-        enrollData = Loader.loadEnrollmentRaw(current_user.enrollId)
         try:
-            enrollData['profiles'].remove(request.form.get('profileCode').lower())
-            Setter.saveEnroll(current_user.enrollId, enrollData)
-            os.remove('./server/storage/profiles/'+request.form.get('profileCode').lower()+'.json')
+            profilesDir = "./server/storage/schools/"+current_user.enrollId+"/profiles/"
+            os.remove(profilesDir+request.form.get('profileCode')+".json")
+            Setter.updateEnrollLastMod(current_user.enrollId)
             flash("Profile removed successfully!")
             return redirect(url_for('main.profile'))
-        except ValueError:
+        except FileNotFoundError:
             abort(400)
+        #enrollData = Loader.loadEnrollmentRaw(current_user.enrollId)
+        #try:
+        #    enrollData['profiles'].remove(request.form.get('profileCode').lower())
+        #    Setter.saveEnroll(current_user.enrollId, enrollData)
+        #    os.remove('./server/storage/profiles/'+request.form.get('profileCode').lower()+'.json')
+        #    flash("Profile removed successfully!")
+        #    return redirect(url_for('main.profile'))
+        #except ValueError:
+        #    abort(400)
     else:
         abort(400)
 
@@ -114,6 +130,18 @@ def renameEnroll():
         Setter.saveEnroll(current_user.enrollId, enrollData)
         flash("Enrollment renamed successfully!")
         return redirect(url_for('main.profile'))
+    else:
+        abort(400)
+
+@main.route('/profile/getProfile')
+@login_required
+def getProfile():
+    if request.headers.get("profileCode"):
+        assert current_user.enrollId
+        if (request.headers.get("profileCode") == 'default'):
+            return send_from_directory('storage/schools/default/profiles', "default.json")
+        else:
+            return send_from_directory('storage/schools/'+current_user.enrollId+'/profiles', request.headers.get("profileCode").lower()+".json")
     else:
         abort(400)
 

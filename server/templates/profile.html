@@ -124,10 +124,10 @@
       width: unset;
     }
 
-    .table-container th {
+    .enrollTableContainer th {
       white-space: nowrap;
     }
-    .table-container td {
+    .enrollTableContainer td {
       width: 100%;
     }
     td button:hover{
@@ -195,6 +195,21 @@
     .blocked-site-data {
       width: unset;
     }
+    .table-checkbox{
+      width: 0;
+      max-width: 0em;
+      opacity: 0;
+      pointer-events: none;
+      padding: 0.5em 0em !important;
+      transition: all 0.75s;
+    }
+    .table-checkbox.is-active{
+      max-width: 2em;
+      opacity: 1;
+      pointer-events: auto;
+      padding: var(--bulma-table-cell-padding)!important;
+      transition: all 0.75s;
+    }
 
 
     .loadSign{
@@ -245,7 +260,7 @@
   <h2 class="subtitle">Welcome to Ignite DMA Manager</h2>
   <div class="box">
     <p class="title is-size-4">Enrollment Information</p>
-    <div class="table-container block is-fullwidth">
+    <div class="table-container block is-fullwidth enrollTableContainer">
       <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
         <tbody>
           <tr class="is-selected title is-4">
@@ -271,7 +286,10 @@
           </tr>
           <tr>
             <th>Enrollment Code</th>
-            <td id="enrollCode"></td>
+            <td>
+              <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="copyEnrollCode()">content_copy</button>
+              <p id="enrollCode" style="display: inline"></p>
+            </td>
           </tr>
           <tr>
             <th>Last Modified</th>
@@ -280,6 +298,7 @@
           <tr>
             <th>Removal PIN</th>
             <td style="user-select: none">
+              <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="copyPin()">content_copy</button>
               <p id="enrollPin" style="display: inline;vertical-align: bottom;user-select: text">••••••••</p>
               <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="enrollPinToggle(this)">visibility</button>
             </td>
@@ -294,7 +313,7 @@
 
 
     <p class="title is-size-4">Profiles</p>
-    <div class="box block has-background-dark profileContainer">
+    <div class="box block has-background-dark profileContainer" style="margin-bottom: 3em">
 
       <!--div class="box profileBox" data-profile="jijsij" onclick="profileInfo(this)">
         <div class="profileTop">
@@ -335,6 +354,86 @@
       </div>
 
     </div>
+
+
+
+    <p class="title is-size-4" style="margin-bottom: -0.5em">Manage People</p>
+    <div id="managePeopleTabs" class="tabs">
+      <ul>
+        <li class="is-active"><a onclick="toggleTab(this, 'teachers')"><span>Teachers</span></a></li>
+        <li><a onclick="toggleTab(this, 'students')"><span>Students</span></a></li>
+      </ul>
+    </div>
+    <div id="tabs-content-container" style="margin-bottom: 0.5em">
+      <div id="teachers-tab-content" class="tab-content">
+        <div id="teachersBtnsNoSelect" style="margin-bottom: 0.5em; display: flex">
+          <button class="button is-warning" onclick="tableCheckboxEnable()">Select Multiple</button>
+          <div class="buttons is-right" style="flex: auto">
+            <button class="button is-success">Add Teacher</button>
+          </div>
+        </div>
+        <div id="teachersBtnsSelect" class="hidden" style="margin-bottom: 0.5em; display: flex">
+          <button class="button is-warning" onclick="tableCheckboxDisable()">Cancel Selection</button>
+          <div class="buttons is-right" style="flex: auto">
+            <button class="button is-warning" disabled>Reset Password</button>
+            <button class="button is-danger" disabled>Delete Teacher</button>
+          </div>
+        </div>
+        <div class="table-container block is-fullwidth">
+          <table class="table is-striped is-hoverable is-fullwidth has-text-left">
+            <thead>
+              <tr class="is-selected">
+                <th class="table-checkbox"><input type="checkbox" /></th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Account Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
+              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
+              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
+              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
+              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
+              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
+              <tr class="has-text-centered">
+                <td colSpan="4"><button class="button loadSign" id="loading"></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="students-tab-content" class="tab-content hidden">
+        <div class="buttons is-right" style="margin-bottom: 0.5em">
+          <button class="button is-warning">Select Multiple</button>
+        </div>
+        <div class="table-container block is-fullwidth">
+          <table class="table is-striped is-hoverable is-fullwidth has-text-left">
+            <thead>
+              <tr class="is-selected">
+                <th>Email</th>
+                <th><abr title="The last time the student's device connected to IgniteDMA server">Last Online</abr></th>
+                <th>Client Version</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!--tr>
+                <td>Mr Tan</td>
+                <td>AmazingTan</td>
+                <td><button class="button is-success status">Active</button></td>
+              </tr-->
+              <tr class="has-text-centered">
+                <td colSpan="3"><button class="button loadSign" id="loading"></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+
+
   </div>
   <div id="profileModal" class="modal">
     <div class="modal-background"></div>
@@ -432,7 +531,7 @@
           </div>
           <textarea style="display: none" id="blockedSitesList" name="blockedSitesList" hidden></textarea>
           <input type="text" style="display: none" id="profileFormCode" name="profileCode" hidden></input>
-          <input type="number" style="display: none" id="profileFormLastUpdated" name="profileLastUpdated" hidden></input>
+          <input type="number" style="display: none" id="profileFormLastModified" name="profileLastModified" hidden></input>
           <input type="text" style="display: none" id="profileFormType" name="profileType" hidden></input>
         </form>
       </section>
@@ -591,12 +690,28 @@
         $("#enrollPinSubmit").addClass("is-loading");
       }
     }
+    function copyPin(){
+      let pin = JSON.parse($('#userData').text())["RemovalPin"];
+      navigator.clipboard.writeText(pin).then(() => {
+        notifi("is-success", "Success", "PIN copied to clipboard!");
+      }).catch(() => {
+        notifi("is-danger", "Failed", "Failed to copy PIN to clipboard!");
+      });
+    }
+    function copyEnrollCode(){
+      let pin = JSON.parse($('#userData').text())["enrollCode"].toUpperCase();
+      navigator.clipboard.writeText(pin).then(() => {
+        notifi("is-success", "Success", "Enrollment Code copied to clipboard!");
+      }).catch(() => {
+        notifi("is-danger", "Failed", "Failed to copy Enrollment Code to clipboard!");
+      });
+    }
     let enrollPinTimeout;
     function enrollPinToggle(elm){
       clearTimeout(enrollPinTimeout);
       if ($(elm).text() == "visibility"){
-        let data = JSON.parse($('#userData').html());
-        $("#enrollPin").html(data["removalPin"]);
+        let data = JSON.parse($('#userData').text());
+        $("#enrollPin").text(data["RemovalPin"]);
         $(elm).text("visibility_off");
         enrollPinTimeout = setTimeout(() => {
           enrollPinClose(elm);
@@ -765,14 +880,14 @@
     let profileModalData;
     function renderModalData(profileCode){
       $('#profileModal').attr('data-profileCode', profileCode);
-      return fetch("../api/v1/profile/"+profileCode, {cache: "no-cache"}).then(parseResponse).then((data) => {
+      return fetch("/profile/getProfile", {cache: "no-cache", headers: {"profileCode": profileCode}}).then(parseResponse).then((data) => {
         profileModalData = data;
         console.dir(data);
         $("#profileModal #profileName").text(data.name);
         renderModalStatus(data);
         $("#profileModal #profileDay").text(parseDays(data.enforceDays));
         $("#profileModal #profileTime").text(parseTime(data.enforceTime));
-        $("#profileModal #profileLastUpdated").text(fixTimeString(new Date(data.lastUpdated).toLocaleString('en-US')));
+        $("#profileModal #profileLastUpdated").text(fixTimeString(new Date(data.lastModified).toLocaleString('en-US')));
         $("#profileBlockedSites").children().remove();
         data.blockedSites.forEach((site) => {
           $("#profileBlockedSites").append($('<input>',{class: "blocked-site-entry input", readOnly: true, value: site}));
@@ -1002,11 +1117,30 @@
         $("#blockedSitesList").text(urlList.join('\n'));
         $("#profileFormCode").val($('#profileModal').attr('data-profileCode'));
         $("#profileFormType").val(profileModalData.type);
-        $("#profileFormLastUpdated").val(profileModalData.lastUpdated);
+        $("#profileFormLastModified").val(profileModalData.lastModified);
         //Last Updated sent so that server can check if profile was edited from
         //another computer while user was editiing. Resulting in 2 diffrent versions
       }
     }
+
+    function toggleTab(elm, tabName){
+      $("#managePeopleTabs .is-active").removeClass("is-active");
+      $(elm).parent().addClass("is-active");
+      $("#tabs-content-container .tab-content").not("#"+tabName+"-tab-content").addClass("hidden");
+      $("#tabs-content-container #"+tabName+"-tab-content").removeClass("hidden");
+    }
+    function tableCheckboxEnable(){
+      $("#teachersBtnsSelect").removeClass("hidden")
+      $("#teachersBtnsNoSelect").addClass("hidden")
+      $(".table-checkbox").addClass("is-active")
+    }
+    function tableCheckboxDisable(){
+      $("#teachersBtnsNoSelect").removeClass("hidden")
+      $("#teachersBtnsSelect").addClass("hidden")
+      $(".table-checkbox").removeClass("is-active")
+    }
+
+
     function renderUI(){
       let now = new Date();
       if (now.getHours() >= 18){
@@ -1023,11 +1157,11 @@
         msg.innerHTML = "This profile does not have any blocked sites configured.";
         document.getElementById("profileBlockedSites").appendChild(msg);
       }
-      let data = JSON.parse($('#userData').html());
+      let data = JSON.parse($('#userData').text());
       $('#enrollName').text(data.enrollName);
       $('#enrollNameEditField').val(data.enrollName);
       $('#enrollCode').text(data.enrollCode.toUpperCase());
-      $('#enrollLastUpdated').text(fixTimeString(new Date(data.lastUpdated).toLocaleString('en-US')));
+      $('#enrollLastUpdated').text(fixTimeString(new Date(data.lastModified).toLocaleString('en-US')));
       $(".profileContainer").children().not('.profilePlaceholder').remove();
       Object.entries(data.profiles).forEach(([profileCode,profileData]) => {
         let profileBox = $(".profilePlaceholder").first().clone().removeClass('profilePlaceholder');

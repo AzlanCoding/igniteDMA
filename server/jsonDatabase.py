@@ -1,10 +1,13 @@
 import json, datetime, os
-from .models import EnrollData
+#from .models import EnrollData
 from . import db
 
 def setUpJsonDb():
-    os.makedirs("./server/storage/profiles/", exist_ok=True)
-    os.makedirs("./server/storage/schools/", exist_ok=True)
+    assert os.path.isdir("./server/storage/schools/default"), "Unable to locate default school folder"
+    os.makedirs("./server/storage/schools/default/students", exist_ok=True)
+    os.makedirs("./server/storage/schools/default/teachers", exist_ok=True)
+    #os.makedirs("./server/storage/profiles/", exist_ok=True)
+    #os.makedirs("./server/storage/schools/", exist_ok=True)
     os.makedirs("./server/storage/cache/", exist_ok=True)
     for f in os.listdir("./server/storage/cache/"):
         os.remove(os.path.join("./server/storage/cache/", f))
@@ -35,8 +38,8 @@ class Cache():
 
 class Loader():
     """Functions to load diffrent profiles/enroll data"""
-    def loadProfile(profileCode):
-        with open('./server/storage/profiles/'+profileCode.lower()+'.json', 'r') as f:
+    def loadProfile(enrollCode, profileCode):
+        with open('./server/storage/schools/'+enrollCode.lower()+'/profiles/'+profileCode.lower()+'.json', 'r') as f:
             data = json.load(f)
             f.close()
             return data
@@ -45,45 +48,66 @@ class Loader():
         cachedFile = Cache.getFromCache('school'+enrollCode.lower())
         if cachedFile:
             return cachedFile
-        with open('./server/storage/schools/'+enrollCode.lower()+'.json', 'r') as f:
+        enrollDir = './server/storage/schools/'+enrollCode.lower()
+        with open(enrollDir+'/public.json', 'r') as f:
             base = json.load(f)
             f.close()
-            profileData = {}
-            for profileCode in base["profiles"]:
-                profileData.update({profileCode: Loader.loadProfile(profileCode)})
-            base["profiles"] = profileData
+            base["profiles"] = {}
+            for profile in os.listdir(enrollDir+'/profiles/'):
+                profileCode = profile[:-5]#Remove ".json"
+                base["profiles"].update({profileCode: Loader.loadProfile(enrollCode, profileCode)})
             Cache.setCache('school'+enrollCode.lower(),base)
             return base
 
     def loadEnrollmentRaw(enrollCode):
-        with open('./server/storage/schools/'+enrollCode.lower()+'.json', 'r') as f:
+        with open('./server/storage/schools/'+enrollCode.lower()+'/public.json', 'r') as f:
             data = json.load(f)
             f.close()
             return data
 
-    def getEnrollMasterPin(enrollCode):
-        return EnrollData.query.get(enrollCode.lower()).masterPin
+    def loadEnrollmentPriv(enrollCode, privOnly=False):
+        if privOnly:
+            enrollDir = './server/storage/schools/'+enrollCode.lower()
+            with open(enrollDir+'/private.json', 'r') as f:
+                privData = json.load(f)
+                f.close()
+                return privData
+        else:
+            base = Loader.loadEnrollment(enrollCode)
+            enrollDir = './server/storage/schools/'+enrollCode.lower()
+            with open(enrollDir+'/private.json', 'r') as f:
+                privData = base | json.load(f)
+                f.close()
+                return privData
+
+    #def getEnrollMasterPin(enrollCode):
+    #    return EnrollData.query.get(enrollCode.lower()).masterPin
 
 class Setter():
     """Functions to Modify profiles/enrollData"""
-    def __setData(file, data):
-        with open('./server/storage/'+file+'.json', 'w', encoding='utf8') as f:
+    def __setData(enrollCode, file, data):
+        with open('./server/storage/schools/'+enrollCode+'/'+file+'.json', 'w', encoding='utf8') as f:
             f.write(json.dumps(data,indent=4))
             f.close()
 
-    def saveProfile(profileCode, data):
-        data["lastUpdated"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
-        Setter.__setData("profiles/"+profileCode.lower(), data)
+    def saveProfile(enrollCode, profileCode, data):
+        data["lastModified"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
+        Setter.__setData(enrollCode, "profiles/"+profileCode.lower(), data)
 
     def saveEnroll(enrollCode, data):
-        data["lastUpdated"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
-        Setter.__setData("schools/"+enrollCode.lower(), data)
+        data["lastModified"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
+        Setter.__setData(enrollCode, "public", data)
         Cache.invalidateCache('school'+enrollCode.lower())
 
-    def setEnrollMasterPin(enrollCode, newPin):
-        EnrollData.query.get(enrollCode.lower()).masterPin = newPin
-        db.session.commit()
+    def updateEnrollLastMod(enrollCode):
+        Setter.saveEnroll(enrollCode, Loader.loadEnrollmentRaw(enrollCode))
+
+    def saveEnrollPriv(enrollCode, data):
+        Setter.__setData(enrollCode, "private", data)
+        Setter.updateEnrollLastMod(enrollCode)#Invalidate Cache + Change Last modified
+        #EnrollData.query.get(enrollCode.lower()).masterPin = newPin
+        #db.session.commit()
 
 class Checker():
-    def checkNewProfileValidity(profileCode, lastUpdated):
-        return Loader.loadProfile(profileCode)["lastUpdated"] == int(lastUpdated)
+    def checkNewProfileValidity(enrollCode, profileCode, lastUpdated):
+        return Loader.loadProfile(enrollCode, profileCode)["lastModified"] == int(lastUpdated)
