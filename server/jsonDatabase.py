@@ -10,7 +10,7 @@ def setUpJsonDb():
     #os.makedirs("./server/storage/schools/", exist_ok=True)
     os.makedirs("./server/storage/cache/", exist_ok=True)
     for f in os.listdir("./server/storage/cache/"):
-        os.remove(os.path.join("./server/storage/cache/", f))
+        os.remove(os.path.join("./server/storage/cache/", f)) if f != "roomData" else None
 
 
 class Cache():

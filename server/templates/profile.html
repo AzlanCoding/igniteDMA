@@ -130,7 +130,7 @@
     .enrollTableContainer td {
       width: 100%;
     }
-    td button:hover{
+    td button:hover, th button:hover{
       background: rgba(100,100,100,0.5);
       transition: background 0.5s ease-in-out;
     }
@@ -199,17 +199,45 @@
       width: 0;
       max-width: 0em;
       opacity: 0;
+      scale: 0;
       pointer-events: none;
       padding: 0.5em 0em !important;
       transition: all 0.75s;
+      align-content: center;
     }
     .table-checkbox.is-active{
       max-width: 2em;
       opacity: 1;
+      scale: 1.5;
       pointer-events: auto;
       padding: var(--bulma-table-cell-padding)!important;
       transition: all 0.75s;
     }
+    tbody tr td{
+      align-content: center;
+    }
+    a.dropdown-item{
+      color: hsl(var(--bulma-dropdown-item-h),var(--bulma-dropdown-item-s),var(--bulma-dropdown-item-color-l)) !important;
+    }
+    a.dropdown-item, button.dropdown-item {
+      padding-inline-end: 1rem;
+    }
+    a.dropdown-item .material-symbols-outlined, button.dropdown-item .material-symbols-outlined{
+      vertical-align:middle;
+      flex:auto;
+      text-align:end;
+      margin-left: 1em;
+    }
+    .dropdown .dropdown-menu{
+      opacity: 0;
+    }
+    .dropdown.is-active .dropdown-menu{
+      animation: showModalBg 0.5s ease-out forwards;
+    }
+    .dropdown.is-active.is-closing .dropdown-menu{
+      animation: closeModalBg 0.5s ease-out forwards;
+    }
+
 
 
     .loadSign{
@@ -384,9 +412,96 @@
             <thead>
               <tr class="is-selected">
                 <th class="table-checkbox"><input type="checkbox" /></th>
-                <th>Name</th>
-                <th>Username</th>
-                <th>Account Status</th>
+                <th style="padding-top: 0.25em;padding-left: 0.75em;width: 50%">
+                  <div style="display: flex">
+                    <p style="font-size: 1.5em">Name</p>
+                    <div class="dropdown is-right is-active" style="margin-left: auto">
+                      <div class="dropdown-trigger">
+                        <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-name-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
+                      </div>
+                      <div class="dropdown-menu" id="teachers-name-dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                          <div class="dropdown-item" style="padding-bottom: 0">
+                            <p class="title is-5">Sort By</p>
+                          </div>
+                          <hr class="dropdown-divider" />
+                          <button class="dropdown-item" style="display:flex">
+                            <p style="display: inline">Ascending (A-Z)</p>
+                            <span class="material-symbols-outlined">check</span>
+                          </button>
+                          <button class="dropdown-item" style="display:flex">
+                            <p style="display: inline">Descending (Z-A)</p>
+                            <span class="material-symbols-outlined" style="opacity: 0">check</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="control has-icons-left">
+                    <input class="input is-rounded has-text-left is-small" type="text" placeholder="Search" />
+                    <span class="icon is-small is-left">
+                      <span class="material-symbols-outlined">search</span>
+                    </span>
+                  </p>
+                </th>
+                <th style="padding-top: 0.25em;padding-left: 0.75em;width:30%">
+                  <div style="display: flex">
+                    <p style="font-size: 1.5em">Username</p>
+                    <div class="dropdown is-right is-active" style="margin-left: auto">
+                      <div class="dropdown-trigger">
+                        <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-username-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
+                      </div>
+                      <div class="dropdown-menu" id="teachers-username-dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                          <div class="dropdown-item" style="padding-bottom: 0">
+                            <p class="title is-5">Sort By</p>
+                          </div>
+                          <hr class="dropdown-divider" />
+                          <button class="dropdown-item" style="display:flex">
+                            <p style="display: inline">Ascending (A-Z)</p>
+                            <span class="material-symbols-outlined">check</span>
+                          </button>
+                          <button class="dropdown-item" style="display:flex">
+                            <p style="display: inline">Descending (Z-A)</p>
+                            <span class="material-symbols-outlined" style="opacity: 0">check</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="control has-icons-left">
+                    <input class="input is-rounded has-text-left is-small" type="text" placeholder="Search" />
+                    <span class="icon is-small is-left">
+                      <span class="material-symbols-outlined">search</span>
+                    </span>
+                  </p>
+                </th>
+                <th style="padding-top: 0.25em;padding-left: 0.75em;width:20%">
+                  <div style="display: flex">
+                    <p style="font-size: 1.5em">Account Status</p>
+                    <div class="dropdown is-right is-active" style="margin-left: auto">
+                      <div class="dropdown-trigger">
+                        <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-acc-status-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
+                      </div>
+                      <div class="dropdown-menu" id="teachers-acc-status-dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                          <div class="dropdown-item" style="padding-bottom: 0">
+                            <p class="title is-5">Filter</p>
+                          </div>
+                          <hr class="dropdown-divider" />
+                          <button class="dropdown-item" style="display:flex">
+                            <p style="display: inline">Active</p>
+                            <span class="material-symbols-outlined">check</span>
+                          </button>
+                          <button class="dropdown-item" style="display:flex">
+                            <p style="display: inline">Locked</p>
+                            <span class="material-symbols-outlined">check</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -1138,6 +1253,18 @@
       $("#teachersBtnsNoSelect").removeClass("hidden")
       $("#teachersBtnsSelect").addClass("hidden")
       $(".table-checkbox").removeClass("is-active")
+    }
+    function toggleDropdown(elm){
+      //$(elm.parentElement.parentElement).toggleClass("is-active");
+      if($(elm.parentElement.parentElement).hasClass("is-active")){
+        $(elm.parentElement.parentElement).addClass("is-closing");
+        setTimeout(()=>{
+          $(elm.parentElement.parentElement).removeClass("is-active").removeClass("is-closing")
+        }, 500);
+      }
+      else{
+        $(elm.parentElement.parentElement).addClass("is-active")
+      }
     }
 
 

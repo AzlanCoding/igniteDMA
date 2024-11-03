@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, send_from_directory, request, redirect, flash, jsonify, abort, url_for
 from flask_login import login_required, current_user
+from threading import Lock
 from dotenv import load_dotenv
 import json, datetime, os, random, string
 from .jsonDatabase import Loader, Setter, Checker, setUpJsonDb
 from . import db
 
 setUpJsonDb()
+os.makedirs("./server/storage/cache/roomData", exist_ok=True)
 
 
 main = Blueprint('main', __name__)
@@ -13,6 +15,10 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
     return render_template('index.html')
+
+@main.route('/assets/<path:path>')
+def send_file(path):
+    return send_from_directory('assets', path)
 
 @main.route('/profile')
 @login_required
@@ -145,14 +151,86 @@ def getProfile():
     else:
         abort(400)
 
+#Signalling
+connWriteLock = Lock()
+
+def AddRoomData(room, dataType, newData):
+    connWriteLock.acquire()
+    fileName = room+".json"
+    roomsDir = "./server/storage/cache/roomData/"
+    if not os.path.isfile(roomsDir+fileName):
+        data = {'offer':None, 'answer': None, 'hostICE': [], 'remoteICE': [], 'hostAttempt': 1, 'clientAttempt': 1, 'creationTime': str(datetime.datetime.now())}
+    else:
+        with open(roomsDir+fileName, "r") as f:
+            data = json.load(f)
+            f.close()
+    if 'ICE' in dataType:
+        data[dataType].append(newData)
+    elif 'Attempt' in dataType:
+        data[dataType] += 1
+    else:
+        data[dataType] = newData
+    with open(roomsDir+fileName, 'w') as f2:
+        #f2.write(json.dumps(data))
+        json.dump(data, f2)
+        f2.close()
+        connWriteLock.release()
+        return data
+
+
+def GetRoomData(room):
+    fileName = room+".json"
+    roomsDir = "./server/storage/cache/roomData/"
+    with open(roomsDir+fileName, "r") as f:
+        data = json.load(f)
+        f.close()
+        return data
+
+
+@main.route('/api/v2/signaling/newConn')
+#@login_required
+def newConn():
+    if request.headers.get("SDP"):
+        sdp = request.headers.get("SDP")
+        room = ''.join(random.choice(string.digits) for i in range(10))
+        while (os.path.isfile("./server/storage/cache/roomData/"+room+'.json')):
+            room =  ''.join(random.choice(string.digits) for i in range(10))
+        AddRoomData(room, "offer", sdp)
+        return room
+    else:
+        abort(400)
+
+@main.route('/api/v2/signaling/Conn/<path:path>/getData')
+def getData(path):
+    try:
+        return jsonify(GetRoomData(path))
+    except FileNotFoundError:
+        abort(400)
+
+@main.route('/api/v2/signaling/Conn/<path:path>/updateData')
+def updateData(path):
+    if request.headers.get('dataType') and request.headers.get('data'):
+        try:
+            return jsonify(AddRoomData(path, request.headers.get('dataType'), request.headers.get('data')))
+        except FileNotFoundError:
+            abort(400)
+    else:
+        abort(400)
+
+@main.route('/api/v2/signaling/Conn/<path:path>/delete')
+def delConn(path):
+    fileName = path+".json"
+    roomsDir = "./server/storage/cache/roomData/"
+    try:
+        os.remove(roomsDir+fileName)
+    except FileNotFoundError:
+        pass
+    return "", 200
 
 
 
 
-
-@main.route('/assets/<path:path>')
-def send_file(path):
-    return send_from_directory('assets', path)
+#OLD API
 
 @main.route('/api/v1/profile/<path:path>')
 def sendProfile(path):

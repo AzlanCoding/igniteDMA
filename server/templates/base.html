@@ -37,7 +37,11 @@
       .modal {/*Prevent accidental click to 'logout' when double click close button*/
         --bulma-modal-close-right: 2.5em;
         --bulma-modal-close-top: 2.5em;
-      }/* TODO: Transitions for modal */
+      }
+
+      .dropdown{
+        --bulma-dropdown-menu-min-width: 10rem;
+      }
 
       html {
         overflow-y: auto;
@@ -63,6 +67,9 @@
 
       .hero .tabs ul{
         border-bottom: var(--bulma-tabs-border-bottom-width) var(--bulma-tabs-border-bottom-style) var(--bulma-tabs-border-bottom-color);
+      }
+      tr{
+        transition: all 0.5s linear;
       }
 
 
