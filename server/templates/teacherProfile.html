@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+{% block head %}
+  <title>Ignite DMA Manager – Profile</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    .profileTop{
+      display: flex;
+    }
+    .profileInfo{
+      width: 90%;
+      height: 75%;
+      margin-bottom: 10%
+    }
+    .profilePlaceholder{
+    }
+    .profilePlaceholder div{
+      opacity: 1;
+      filter: blur(0.75em);
+    }
+    .profilePlaceholder .addIcon{
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      user-select: none;
+      align-content: center;
+      opacity: 1 !important;
+      filter: none !important;
+      text-align: center !important;
+      transform: translate(calc(-1*var(--bulma-box-padding)), calc(-1*var(--bulma-box-padding)));
+    }
+    .editButtonContain{
+      width: 10%;
+    }
+    .profileBottom{
+      width: 100%;
+      height: 25%
+    }
+    .editButton{
+      display: block;
+      border-radius: 50%;
+      padding: 0.25em;
+      background: transparent;
+      transition: background 0.5s ease-in-out;
+    }
+    .editButton:hover{
+      background: rgba(100,100,100,0.5);
+      transition: background 0.5s ease-in-out;
+    }
+    .status{
+      pointer-events: none;
+    }
+    .profileEntry{
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      user-select: none;
+    }
+    .profileContainer{
+      overflow: auto;
+      user-select: none;
+      /*text-align: left;*/
+    }
+    .profileBox{
+      width: 25%;
+      position: relative;
+      min-width: 200px;
+      /*min-height: 150px;*/
+      display: inline-block;
+      text-align: left;
+      margin: 0.5em;
+      cursor: pointer;
+      transition: box-shadow 0.5s ease-in-out, background-color 0.5s ease-in-out;
+      box-shadow: 0 2px 3px rgba(10,10,10,.2), 0 0 0 1px rgba(10,10,10,.2);
+    }
+    .profileBox:hover{
+      box-shadow: 10px 15px rgba(10,10,10,.2);
+      background-color: var(--bulma-scheme-main-bis);
+      transition: box-shadow 0.5s ease-in-out, background-color 0.5s ease-in-out;
+    }
+    .editButton2{
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #profileModal .modal-card{
+      width: 90%;
+      height: 90%;
+    }
+    /*#enrollModal{
+      width: width: var(--bulma-modal-content-width);
+      height: unset;
+    }*/
+    .modal-card-head{
+      height: 10%;
+    }
+    .modal-card-body{
+      height: 80%;
+      overscroll-behavior: none;
+    }
+    .modal-card-foot{
+      height: 10%;
+      justify-content: right;
+    }
+    .modal-card-foot .buttons{
+      margin-bottom: unset;
+    }
+    #notifications{
+      position: fixed;
+      top: 10%;
+      left: 10%;
+      right: 10%;
+      z-index: 41;
+    }
+    #notifications .message{
+      opacity: 0.9;
+      box-shadow: 5px 5px rgba(10,10,10,.2);
+      animation: showNotifi 0.75s ease-out;
+    }
+    .hidden{
+      display: none !important;
+    }
+    .blocked-site-entry{
+      width: unset;
+    }
+
+    .enrollTableContainer th {
+      white-space: nowrap;
+    }
+    .enrollTableContainer td {
+      width: 100%;
+    }
+    td button:hover, th button:hover{
+      background: rgba(100,100,100,0.5);
+      transition: background 0.5s ease-in-out;
+    }
+    #profileTimeEdit label {
+      display: inline;
+      padding-right: 1em;
+      vertical-align: middle;
+    }
+    .timeInput{
+      width: unset;
+      margin-bottom: 0.5em;
+    }
+    .checkboxes input{
+      margin-right: 0.25em;
+      margin-left: 0.5em;
+    }
+    input{
+      text-align: center;
+    }
+
+
+    .blocked-site-input {
+      display: block;
+      margin-bottom: 5px;
+      width: unset;
+    }
+    .blocked-site-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .remove-btn {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 0;
+      cursor: pointer;
+      background-color: transparent;
+      color: red;
+      border: none;
+      padding: 2px 5px;
+      transform: rotate(45deg);
+    }
+    .remove-btn::after{
+      content: "+";
+    }
+    .blocked-site-wrapper:hover .remove-btn {
+      display: inline;
+    }
+    #firstBox {
+      width: 100%;
+    }
+    #notifi{
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+    }
+    .clear{
+      opacity: 0;
+      transition: opacity 1.5s;
+    }
+    .blocked-site-data {
+      width: unset;
+    }
+    .table-checkbox{
+      width: 0;
+      max-width: 0em;
+      opacity: 0;
+      scale: 0;
+      pointer-events: none;
+      padding: 0.5em 0em !important;
+      transition: all 0.75s;
+      align-content: center;
+    }
+    .table-checkbox.is-active{
+      max-width: 2em;
+      opacity: 1;
+      scale: 1.5;
+      pointer-events: auto;
+      padding: var(--bulma-table-cell-padding)!important;
+      transition: all 0.75s;
+    }
+    tbody tr td{
+      align-content: center;
+    }
+    a.dropdown-item{
+      color: hsl(var(--bulma-dropdown-item-h),var(--bulma-dropdown-item-s),var(--bulma-dropdown-item-color-l)) !important;
+    }
+    a.dropdown-item, button.dropdown-item {
+      padding-inline-end: 1rem;
+    }
+    a.dropdown-item .material-symbols-outlined, button.dropdown-item .material-symbols-outlined{
+      vertical-align:middle;
+      flex:auto;
+      text-align:end;
+      margin-left: 1em;
+    }
+    .dropdown .dropdown-menu{
+      opacity: 0;
+    }
+    .dropdown.is-active .dropdown-menu{
+      animation: showModalBg 0.5s ease-out forwards;
+    }
+    .dropdown.is-active.is-closing .dropdown-menu{
+      animation: closeModalBg 0.5s ease-out forwards;
+    }
+
+
+
+    .loadSign{
+      height:100%;
+      border-color: transparent;
+      background-color: transparent;
+      pointer-events: none;
+    }
+
+    .loadSign::after{
+      border-color: transparent transparent var(--bulma-text-strong) var(--bulma-text-strong) !important;
+      -webkit-animation: spinAround .5s infinite linear;
+      animation: spinAround .5s infinite linear;
+      border: 5px solid #dbdbdb;
+      border-radius: 100%;
+      border-right-color: transparent;
+      border-top-color: transparent;
+      content: "";
+      display: block;
+      height: 5em;
+      position: relative;
+      width: 5em;
+    }
+
+    [type="time"]::-webkit-calendar-picker-indicator {
+      background-image: url("/assets/schedule_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24.png");
+    }/* NOTE: This does not work on firefox */
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div id="notifications">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <article class="message is-success">
+          <div class="message-header">
+            Success
+            <button class="delete" onclick="closeNotifi(this)"></button>
+          </div>
+          <div class="message-body">
+            {{ messages[0] }}
+          </div>
+        </article>
+      {% endif %}
+    {% endwith %}
+  </div>
+  <h1 class="title" id="greeting"></h1>
+  <h2 class="subtitle">Welcome to Ignite DMA Manager</h2>
+  <div class="box">
+    <!--div class="level">
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Classes</p>
+          <p class="title">0</p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Students</p>
+          <p class="title">0</p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Other Data</p>
+          <p class="title">0</p>
+        </div>
+      </div>
+      <div class="level-item has-text-centered">
+        <div>
+          <p class="heading">Other Data</p>
+          <p class="title">0</p>
+        </div>
+      </div>
+    </div-->
+
+    <p class="title is-size-4">My Clases</p>
+    <div class="box block has-background-dark profileContainer" style="margin-bottom: 3em">
+
+      <!--div class="box profileBox" data-profile="jijsij" onclick="profileInfo(this)">
+        <div class="profileTop">
+          <div class="profileInfo">
+            <p class="profileEntry title is-size-5">Baseline Profile</p>
+            <p class="profileEntry subtitle is-size-6">Everyday<br>24/7</p>
+          </div>
+          <div class="editButtonContain">
+            <button class="editButton" onclick="profileEdit(this)"><span class="material-symbols-outlined">edit</span></button>
+          </div>
+        </div>
+        <div class="profileBottom">
+          <button class="button is-success status">Active</button>
+          <button class="button is-warning status hidden">Inactive</button>
+          <button class="button is-danger is-inverted status hidden">Disabled</button>
+        </div>
+      </div-->
+
+      <div class="box profileBox profilePlaceholder" data-profile="">
+        <div class="addIcon">
+          <strong><span class="material-symbols-outlined" style="font-size: 36px;">add</span></strong>
+          <p class="subtitle"><strong>Click here to add a new profile</strong></p>
+        </div>
+        <div class="profileTop">
+          <div class="profileInfo">
+            <p class="profileEntry title is-size-5">Example Profile</p>
+            <p class="profileEntry subtitle is-size-6">Weekdays<br>08:00-14:30</p>
+          </div>
+          <div class="editButtonContain hidden">
+            <button class="editButton" onclick="profileEdit(this)"><span class="material-symbols-outlined">edit</span></button>
+          </div>
+        </div>
+        <div class="profileBottom">
+          <button class="button is-success status">Active</button>
+          <button class="button is-warning status hidden">Inactive</button>
+          <button class="button is-danger is-inverted status hidden">Disabled</button>
+        </div>
+      </div>
+
+    </div>
+
+
+
+
+  </div>
+  <div class="modal" id="confirmModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title" id="confirmModalTitle"></p>
+        <button class="delete" aria-label="close" onclick="closeModalCard(this)"></button>
+      </header>
+      <section class="modal-card-body">
+        <p id="confirmModalContent" class="title is-5" style="font-weight: unset"></p>
+      </section>
+      <footer class="modal-card-foot">
+        <div class="buttons">
+          <button class="button" onclick="closeModalCard(this.parentElement)">Cancel</button>
+          <button class="button is-success" id="confirmModalSubmitBtn">OK</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <div id="userData" style="display: none">
+    {{ data }}
+  </div>
+  <script>
+    function notifi(status, title, text){
+      /*let notifi = $("<div>", {class: "notification "+status});
+      notifi.text(data);
+      notifi.append($("<button>", {class: "delete", onclick: "closeNotifi(this)"}));*/
+      let notifi = $("<article>", {class: "message "+status});
+      let header = $("<div>", {class: "message-header"});
+      header.text(title);
+      header.append($("<button>", {class: "delete", onclick: "closeNotifi(this)"}));
+      let body = $("<div>", {class: "message-body"});
+      body.html(text);
+      notifi.append(header,body);
+      $('#notifications').append(notifi);
+    }
+    function confirmModal(title, body, confirmCallback){
+      $('#confirmModal #confirmModalTitle').text(title);
+      $('#confirmModal #confirmModalContent').html(body);
+      $('#confirmModal #confirmModalSubmitBtn').removeClass('is-loading');
+      $('#confirmModal #confirmModalSubmitBtn').off('click');
+      $('#confirmModal #confirmModalSubmitBtn').on('click', confirmCallback);
+      $('#confirmModal').addClass('is-active');
+    }
+    function handleError(err){
+      notifi('is-danger','Error',"An unexpected Error occured: "+err.message)
+      return Promise.reject(err);
+    }
+    function parseResponse(response){
+      if (!response.ok){
+        throw new Error("Failed to fetch data from server.", {cause: response});
+      }
+      else{
+        return response.json();
+      }
+    }
+
+    function closeModalCard(elm){
+      $(elm).parent().parent().parent().addClass("is-closing");
+      setTimeout(()=>{
+        $(elm).parent().parent().parent().removeClass("is-active");
+        $(elm).parent().parent().parent().removeClass("is-closing");
+      }, 750);
+      profileModalData = null;
+    }
+    function closeModalFormCard(elm){
+      event.preventDefault();
+      $(elm).parent().parent().parent().addClass("is-closing");
+      setTimeout(()=>{
+        $(elm).parent().parent().parent().removeClass("is-active");
+        $(elm).parent().parent().parent().removeClass("is-closing");
+      }, 750);
+
+      profileModalData = null;
+    }
+    function closeNotifi(elm){
+      $(elm).parent().parent().animate({opacity: 0, height: 0, margin: 0, padding: 0}, 1000, () => {
+        $(elm).parent().parent().remove();
+      });
+    }
+
+    function renderUI(){
+      let now = new Date();
+      if (now.getHours() >= 18){
+        $('#greeting').text("Good Evening!");
+      }
+      else if (now.getHours() >= 12) {
+        $('#greeting').text("Good Afternoon!");
+      }
+      else{
+        $('#greeting').text("Good Morning!");
+      }
+
+      //let data = JSON.parse($('#userData').text());
+    }
+
+    function updateUIloop(){
+      renderUI()
+      let now = new Date();
+      let delay = (61 - now.getSeconds()) * 1000;//Runs every minute + 1 second delay just in case
+      return setTimeout(updateUIloop,delay);
+    }
+
+    $(document).ready(() => {
+      updateUIloop();
+    });
+  </script>
+{% endblock %}

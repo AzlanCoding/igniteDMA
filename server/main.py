@@ -20,6 +20,16 @@ def index():
 def send_file(path):
     return send_from_directory('assets', path)
 
+@main.route('/profile2')
+@login_required
+def profile2():
+    return render_template('teacherProfile.html')
+
+@main.route('/class')
+@login_required
+def classPage():
+    return render_template('class.html')
+
 @main.route('/profile')
 @login_required
 def profile():
@@ -205,6 +215,20 @@ def getData(path):
     try:
         return jsonify(GetRoomData(path))
     except FileNotFoundError:
+        abort(400)
+
+@main.route('/api/v2/signaling/Conn/getMultiple')
+def getMultipleData():
+    if request.headers.get("ReqConns"):
+        conns = request.headers.get("ReqConns").split(";")
+        response = {}
+        for conn in conns:
+            try:
+                response[conn] = GetRoomData(conn)
+            except FileNotFoundError:
+                pass
+        return jsonify(response) if response != {} else abort(400)
+    else:
         abort(400)
 
 @main.route('/api/v2/signaling/Conn/<path:path>/updateData')

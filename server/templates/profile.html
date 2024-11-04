@@ -392,19 +392,38 @@
         <li><a onclick="toggleTab(this, 'students')"><span>Students</span></a></li>
       </ul>
     </div>
-    <div id="tabs-content-container" style="margin-bottom: 0.5em">
+    <div id="tabs-content-container" style="margin-bottom: 0.5em; padding-inline: 1rem">
       <div id="teachers-tab-content" class="tab-content">
+        <div class="field has-addons" style="padding-inline: 3rem;">
+          <div class="control has-icons-left" style="width:100%">
+            <input class="input is-rounded has-text-left" type="text" placeholder="Search" />
+            <span class="icon is-left">
+              <span class="material-symbols-outlined">search</span>
+            </span>
+          </div>
+          <div class="control">
+            <span class="select">
+              <select>
+                <option>Search by Name</option>
+                <option>Search by Username</option>
+              </select>
+            </span>
+          </div>
+          <div class="control">
+            <button class="button is-info is-rounded">Search</button>
+          </div>
+        </div>
         <div id="teachersBtnsNoSelect" style="margin-bottom: 0.5em; display: flex">
-          <button class="button is-warning" onclick="tableCheckboxEnable()">Select Multiple</button>
+          <button class="button is-warning is-small" onclick="tableCheckboxEnable()">Select Multiple</button>
           <div class="buttons is-right" style="flex: auto">
-            <button class="button is-success">Add Teacher</button>
+            <button class="button is-success is-small">Add Teacher</button>
           </div>
         </div>
         <div id="teachersBtnsSelect" class="hidden" style="margin-bottom: 0.5em; display: flex">
-          <button class="button is-warning" onclick="tableCheckboxDisable()">Cancel Selection</button>
+          <button class="button is-warning is-small" onclick="tableCheckboxDisable()">Cancel Selection</button>
           <div class="buttons is-right" style="flex: auto">
-            <button class="button is-warning" disabled>Reset Password</button>
-            <button class="button is-danger" disabled>Delete Teacher</button>
+            <button class="button is-warning is-small" disabled>Reset Password</button>
+            <button class="button is-danger is-small" disabled>Delete Teacher</button>
           </div>
         </div>
         <div class="table-container block is-fullwidth">
@@ -415,7 +434,7 @@
                 <th style="padding-top: 0.25em;padding-left: 0.75em;width: 50%">
                   <div style="display: flex">
                     <p style="font-size: 1.5em">Name</p>
-                    <div class="dropdown is-right is-active" style="margin-left: auto">
+                    <div class="dropdown is-right" style="margin-left: auto">
                       <div class="dropdown-trigger">
                         <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-name-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
                       </div>
@@ -437,17 +456,11 @@
                       </div>
                     </div>
                   </div>
-                  <p class="control has-icons-left">
-                    <input class="input is-rounded has-text-left is-small" type="text" placeholder="Search" />
-                    <span class="icon is-small is-left">
-                      <span class="material-symbols-outlined">search</span>
-                    </span>
-                  </p>
                 </th>
                 <th style="padding-top: 0.25em;padding-left: 0.75em;width:30%">
                   <div style="display: flex">
                     <p style="font-size: 1.5em">Username</p>
-                    <div class="dropdown is-right is-active" style="margin-left: auto">
+                    <div class="dropdown is-right" style="margin-left: auto">
                       <div class="dropdown-trigger">
                         <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-username-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
                       </div>
@@ -469,17 +482,11 @@
                       </div>
                     </div>
                   </div>
-                  <p class="control has-icons-left">
-                    <input class="input is-rounded has-text-left is-small" type="text" placeholder="Search" />
-                    <span class="icon is-small is-left">
-                      <span class="material-symbols-outlined">search</span>
-                    </span>
-                  </p>
                 </th>
                 <th style="padding-top: 0.25em;padding-left: 0.75em;width:20%">
                   <div style="display: flex">
                     <p style="font-size: 1.5em">Account Status</p>
-                    <div class="dropdown is-right is-active" style="margin-left: auto">
+                    <div class="dropdown is-right" style="margin-left: auto">
                       <div class="dropdown-trigger">
                         <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-acc-status-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
                       </div>
