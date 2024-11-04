@@ -36,18 +36,14 @@
       let receiveBox = null;
 
       let connectId = null;
+
       let addedRemoteICE = null;
       let remoteSDP = null
       let connID = null;
       let connected = null;
-
       let localConnection = null; // RTCPeerConnection for our "local" connection
-
       let sendChannel = null; // RTCDataChannel for the local (sender)
 
-
-      //cacheStuff
-      //let response2, data, newICE, remoteSDP;
 
       function startup() {
         connectButton = document.getElementById("connectButton");

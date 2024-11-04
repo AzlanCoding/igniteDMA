@@ -246,11 +246,11 @@
       padding-top: 0;
     }
     #classCodeContain p{
-      /*font-size: var(--bulma-title-size);
-      font-weight: var(--bulma-title-weight);
-      line-height: var(--bulma-title-line-height);*/
-      color: hsl(var(--bulma-notification-h), var(--bulma-notification-s), var(--bulma-notification-color-l));
+      /*color: hsl(var(--bulma-notification-h), var(--bulma-notification-s), var(--bulma-notification-color-l));*/
       padding: 0.25em;
+    }
+    .panel-block.is-active{
+      color: var(--bulma-panel-block-color);
     }
 
 
@@ -318,27 +318,32 @@
       <div class="column is-3" style="width: auto">
         <div class="panel is-info">
           <p class="panel-heading">Quick Actions</p>
-          <a class="panel-block">
+          <a class="panel-block is-active" onclick="quickAction(this, 'lockScreen')">
             <span class="panel-icon material-symbols-outlined">desktop_windows</span>
-            Lock Screen
+            <p>Lock Screen</p>
           </a>
-          <a class="panel-block">
+          <a class="panel-block is-active">
+            <span class="panel-icon material-symbols-outlined">captive_portal</span>
+            Allow a Site
+          </a>
+          <!-- NOTE: Cast screen feature TBC v2.1.0 -->
+          <!--a class="panel-block">
             <span class="panel-icon material-symbols-outlined">cast</span>
             Cast Your Screen
-          </a>
-          <a class="panel-block">
+          </a-->
+          <a class="panel-block is-active">
             <span class="panel-icon material-symbols-outlined">present_to_all</span>
             Push Content
           </a>
-          <a class="panel-block">
+          <a class="panel-block is-active">
             <span class="panel-icon material-symbols-outlined">campaign</span>
             Broadcast Message
           </a>
-          <a class="panel-block">
+          <a class="panel-block is-active">
             <span class="panel-icon material-symbols-outlined">live_help</span>
             Post a Question
           </a>
-          <a class="panel-block">
+          <a class="panel-block is-active">
             <span class="panel-icon material-symbols-outlined">forum</span>
             Open Q&A
           </a>
@@ -356,7 +361,53 @@
             <button class="button is-info is-rounded">Search</button>
           </div>
         </div>
-        <div id="studentsContain" class="">
+        <div id="studentsContain" class="box block profileContainer has-background-dark">
+
+          <div class="box profileBox">
+            <div class="profileInfo">
+              <p class="profileEntry title is-size-5">Student Name</p>
+              <p class="profileEntry subtitle is-size-6">student_email@students.edu.sg</p>
+            </div>
+            <div class="buttons is-right">
+              <button class="button status is-warning">Connecting<button>
+            </div>
+          </div><div class="box profileBox">
+            <div class="profileInfo">
+              <p class="profileEntry title is-size-5">Student Name</p>
+              <p class="profileEntry subtitle is-size-6">student_email@students.edu.sg</p>
+            </div>
+            <div class="buttons is-right">
+              <button class="button status is-warning">Connecting<button>
+            </div>
+          </div><div class="box profileBox">
+            <div class="profileInfo">
+              <p class="profileEntry title is-size-5">Student Name</p>
+              <p class="profileEntry subtitle is-size-6">student_email@students.edu.sg</p>
+            </div>
+            <div class="buttons is-right">
+              <button class="button status is-success">Connected<button>
+            </div>
+          </div><div class="box profileBox">
+            <div class="profileInfo">
+              <p class="profileEntry title is-size-5">Student Name</p>
+              <p class="profileEntry subtitle is-size-6">student_email@students.edu.sg</p>
+            </div>
+            <div class="buttons is-right">
+              <button class="button status is-danger">Offline<button>
+            </div>
+          </div>
+          <div class="box profileBox">
+            <div class="profileInfo">
+              <p class="profileEntry title is-size-5">Student Name</p>
+              <p class="profileEntry subtitle is-size-6">student_email@students.edu.sg</p>
+            </div>
+            <div class="buttons is-right">
+              <button class="button status is-warning">Connecting<button>
+            </div>
+          </div>
+
+
+
         </div>
 
       </div>
@@ -442,6 +493,21 @@
       $(elm).parent().parent().animate({opacity: 0, height: 0, margin: 0, padding: 0}, 1000, () => {
         $(elm).parent().parent().remove();
       });
+    }
+
+    function quickAction(elm, action){
+      if (action == "lockScreen"){
+        if ($(elm).hasClass('is-active')){
+          $(elm).children("p").html("Unlock Screen");
+          $(elm).children("span").html("desktop_access_disabled");
+        }
+        else{
+          $(elm).children("p").html("Lock Screen");
+          $(elm).children("span").html("desktop_windows");
+        }
+        $(elm).toggleClass("is-active")
+        $(elm).toggleClass("has-background-danger-dark")
+      }
     }
 
     function renderUI(){
