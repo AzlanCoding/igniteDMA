@@ -553,6 +553,21 @@ async function handleExternalAction(sendResponse, func, args){
 
 
 /*---Main Startup---*/
+function initExtension(){
+  if (typeof syncEnrollmentInterval == 'undefined'){
+    syncEnrollment();
+    let syncEnrollmentInterval = setInterval(syncEnrollment, 30000);
+  }
+  if (typeof syncEnrollmentInterval == 'undefined'){
+    let setBlockedSitesInterval = setBlockedSitesLoop();
+  }
+  if (typeof permissionsCheckInterval == 'undefined'){
+    checkPermissions();
+    let permissionsCheckInterval = setInterval(checkPermissions, 1000);
+  }
+  return logData("info","EXTENSION INITILISATION COMPLETE");
+}
+
 if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ == '__main__':` in python
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request === 'getBlockedSites') {
@@ -579,30 +594,6 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
     }
   });
 
-  chrome.runtime.onStartup.addListener(function() {
-    if (typeof syncEnrollmentInterval == 'undefined'){
-      syncEnrollment();
-      let syncEnrollmentInterval = setInterval(syncEnrollment, 30000);
-    }
-    if (typeof syncEnrollmentInterval == 'undefined'){
-      let setBlockedSitesInterval = setBlockedSitesLoop();
-    }
-    if (typeof permissionsCheckInterval == 'undefined'){
-      checkPermissions();
-      let permissionsCheckInterval = setInterval(checkPermissions, 1000);
-    }
-  });
-
-  if (typeof syncEnrollmentInterval == 'undefined'){
-    syncEnrollment();
-    let syncEnrollmentInterval = setInterval(syncEnrollment, 30000);
-  }
-  if (typeof syncEnrollmentInterval == 'undefined'){
-    let setBlockedSitesInterval = setBlockedSitesLoop();
-  }
-  if (typeof permissionsCheckInterval == 'undefined'){
-    checkPermissions();
-    let permissionsCheckInterval = setInterval(checkPermissions, 1000);
-  }
-  logData("info","INITILISATION COMPLETE");//This is async function but I can't put `await` here.
+  chrome.runtime.onStartup.addListener(initExtension);
+  chrome.runtime.onInstalled.addListener(initExtension);
 }
