@@ -6,6 +6,7 @@ def setUpJsonDb():
     assert os.path.isdir("./server/storage/schools/default"), "Unable to locate default school folder"
     os.makedirs("./server/storage/schools/default/students", exist_ok=True)
     os.makedirs("./server/storage/schools/default/teachers", exist_ok=True)
+    os.makedirs("./server/storage/schools/default/classes", exist_ok=True)
     #os.makedirs("./server/storage/profiles/", exist_ok=True)
     #os.makedirs("./server/storage/schools/", exist_ok=True)
     os.makedirs("./server/storage/cache/", exist_ok=True)
@@ -40,6 +41,18 @@ class Loader():
     """Functions to load diffrent profiles/enroll data"""
     def loadProfile(enrollCode, profileCode):
         with open('./server/storage/schools/'+enrollCode.lower()+'/profiles/'+profileCode.lower()+'.json', 'r') as f:
+            data = json.load(f)
+            f.close()
+            return data
+
+    def loadClass(enrollCode, classCode):
+        with open('./server/storage/schools/'+enrollCode.lower()+'/classes/'+classCode.lower()+'.json', 'r') as f:
+            data = json.load(f)
+            f.close()
+            return data
+
+    def loadTeacher(enrollCode, username):
+        with open('./server/storage/schools/'+enrollCode.lower()+'/teachers/'+username.lower()+'.json', 'r') as f:
             data = json.load(f)
             f.close()
             return data
@@ -80,6 +93,56 @@ class Loader():
                 f.close()
                 return privData
 
+    def loadStudent(enrollCode, email):
+        enrollDir = './server/storage/schools/'+enrollCode.lower()
+        if os.path.isFile(enrollDir+'/students/'+email.lower()+'.json'):
+            with open(enrollDir+'/students/'+email.lower()+'.json', 'r') as f:
+                data = json.load(f)
+                f.close()
+                classDatas = {}
+                removeClasses = []
+                for classCode in data['classes']:
+                    try:
+                        classData = Loader.loadClass(enrollCode, classCode)
+                        if email in classData['students']:
+                            classDatas.update({classCode: classData})
+                        else:
+                            raise ValueError
+                    except (FileNotFoundError, ValueError):
+                        removeClasses.append(classCode)
+                if len(removeClass) > 0:
+                    for classCode in removeClasses:
+                        data['classes'].remove(classCode)
+                    Setter.saveStudent(enrollCode, email, data)
+                data['classes'] = classDatas
+                return data
+        else:
+            if os.path.isdir(enrollDir):
+                if Loader.loadEnrollmentPriv(enrollCode, privOnly=True)['autoAddStudents']:
+                    Setter.saveStudent(enrollCode, email, {'classes': [], 'canRemove': False})
+                    return Loader.loadStudent(enrollCode, email)
+                else:
+                    return None
+            else:
+                return None
+
+    def loadStudentRaw(enrollCode, email):
+        enrollDir = './server/storage/schools/'+enrollCode.lower()
+        if os.path.isFile(enrollDir+'/students/'+email.lower()+'.json'):
+            with open(enrollDir+'/students/'+email.lower()+'.json', 'r') as f:
+                data = json.load(f)
+                f.close()
+                return data
+        else:
+            if os.path.isdir(enrollDir):
+                if Loader.loadEnrollmentPriv(enrollCode, privOnly=True)['autoAddStudents']:
+                    Setter.saveStudent(enrollCode, email, {'classes': [], 'canRemove': False})
+                    return Loader.loadStudent(enrollCode, email)
+                else:
+                    return None
+            else:
+                return None
+
     #def getEnrollMasterPin(enrollCode):
     #    return EnrollData.query.get(enrollCode.lower()).masterPin
 
@@ -94,8 +157,10 @@ class Setter():
         data["lastModified"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
         Setter.__setData(enrollCode, "profiles/"+profileCode.lower(), data)
 
-    def saveEnroll(enrollCode, data):
-        data["lastModified"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
+    def saveEnroll(enrollCode, data, isUserModified=True):
+        data["lastUpdated"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
+        if isUserModified:
+            data["lastModified"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
         Setter.__setData(enrollCode, "public", data)
         Cache.invalidateCache('school'+enrollCode.lower())
 
@@ -107,6 +172,20 @@ class Setter():
         Setter.updateEnrollLastMod(enrollCode)#Invalidate Cache + Change Last modified
         #EnrollData.query.get(enrollCode.lower()).masterPin = newPin
         #db.session.commit()
+    def saveStudent(enrollCode, email, data):
+        data["lastModified"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
+        Setter.__setData(enrollCode, "students/"+email.lower(), data)
+
+    def updateStudentLastMod(enrollCode, email):
+        Setter.saveStudent(enrollCode, email, Loader.loadStudentRaw(enrollCode, email))
+
+    def saveClass(enrollCode, classCode, data):
+        data["lastModified"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
+        Setter.__setData(enrollCode, "classes/"+email.lower(), data)
+
+    def saveTeacher(enrollCode, username, data):
+        data["lastModified"] = int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp() * 1000)
+        Setter.__setData(enrollCode, "teachers/"+username.lower(), data)
 
 class Checker():
     def checkNewProfileValidity(enrollCode, profileCode, lastUpdated):

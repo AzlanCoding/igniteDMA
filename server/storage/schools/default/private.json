@@ -1,3 +1,6 @@
 {
-  "RemovalPin":"SomeCrazyPassword"
+  "RemovalPin":"SomeCrazyPassword",
+  "teachersDefaultResetPin": null,
+  "signUpLinks" : {},
+  "signUpLinksValidityDays": 7
 }

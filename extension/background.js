@@ -1,5 +1,5 @@
-let updateHost = "https://ignitedma.mooo.com"//Production Server
-//let updateHost = "http://127.0.0.1"//Development Server
+//let updateHost = "https://ignitedma.mooo.com"//Production Server
+let updateHost = "http://127.0.0.1"//Development Server
 
 let useLegacyBlocking = false;
 let activeBlockedSites;//Will be an Map but currently null
@@ -151,11 +151,11 @@ async function enforceBlockedSites(data){
     //The setting "site access" is usually set to "on all sites" by default.
     //So, if students change it, the webfilter will not work.
     //Therefore, legacyBlocking is used when this setting is not avaliable.
-    // NOTE: priority set to 2 just in case
+    // NOTE: priority set to 2 so that teachers can override them during lessons
     /// NOTE: legacyBlocking used when more than 4990 rules needed.
     //// NOTE: code repetition in this condition block meant for performace.
     let newrules = new Array();
-    if (useLegacyBlocking || blockedSites.length >= 4990){
+    if (useLegacyBlocking || blockedSites.length > 4990){
       await logData("info","Using legacy blocking method!");
       for (var i = 0; i < blockedSites.length; i++) {
         let site = blockedSites[i]

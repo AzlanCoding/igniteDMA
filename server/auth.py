@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random, string, json, os, datetime, secrets, shutil
 from .jsonDatabase import Loader, Setter
 from .models import User#, EnrollData
-from . import db
+from . import db, signer
 
 
 def genRandomEnrollCode():
@@ -132,6 +132,42 @@ def signup_post():
     flash("Account creation successful!\nLogin to get started!")
 
     return redirect(url_for('auth.login'))
+
+@auth.route('/signup/<path:path>')
+def teacherSignup(path):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.profile'))
+    if signer.validate(path):
+        enrollCode = signer.unsign(path).decode()
+        enrollData = Loader.loadEnrollmentPriv(enrollCode)
+        if path in enrollData['signUpLinks'].keys():
+            if signer.validate(path, max_age=enrollData["signUpLinksValidityDays"]*86400):
+                return render_template("teacherSignup.html", enrollName=enrollData["enrollName"])
+            else:
+                expireDate = signer.unsign(path, return_timestamp=True)[1] + datetime.timedelta(days=enrollData["signUpLinksValidityDays"])
+                return render_template("teacherSignupExpired.html", expiryDate=expireDate.astimezone().strftime("%-d %B %Y at %H:%M:%S (GMT%z)"))
+        else:
+            return render_template("teacherSignupDeleted.html")
+    else:
+        return render_template("teacherSignupInvalid.html")
+
+@auth.route('/signup/<path:path>', methods=['POST'])
+def teacherSignupPost(path):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.profile'))
+    if signer.validate(path):
+        enrollCode = signer.unsign(path).decode()
+        enrollData = Loader.loadEnrollmentPriv(enrollCode)
+        if path in enrollData['signUpLinks'].keys():
+            if signer.validate(path, max_age=enrollData["signUpLinksValidityDays"]*86400):
+                return str(request.form)
+            else:
+                expireDate = signer.unsign(path, return_timestamp=True)[1] + datetime.timedelta(days=enrollData["signUpLinksValidityDays"])
+                return render_template("teacherSignupExpired.html", expiryDate=expireDate.astimezone().strftime("%-d %B %Y at %H:%M:%S (GMT%z)"))
+        else:
+            return render_template("teacherSignupDeleted.html")
+    else:
+        return render_template("teacherSignupInvalid.html")
 
 @auth.route('/logout')
 @login_required

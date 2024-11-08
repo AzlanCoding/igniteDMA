@@ -1,4 +1,5 @@
 from flask import Flask
+from itsdangerous import TimestampSigner
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from dotenv import load_dotenv
@@ -8,6 +9,8 @@ assert load_dotenv(), "Unable to locate environments file."
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
+
+signer = TimestampSigner(os.environ.get('IGNITE_DMA_SECRET_KEY'))
 
 def create_app():
     app = Flask(__name__)

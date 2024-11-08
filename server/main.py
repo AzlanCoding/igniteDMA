@@ -4,13 +4,17 @@ from threading import Lock
 from dotenv import load_dotenv
 import json, datetime, os, random, string
 from .jsonDatabase import Loader, Setter, Checker, setUpJsonDb
-from . import db
+from . import db, signer
 
 setUpJsonDb()
 os.makedirs("./server/storage/cache/roomData", exist_ok=True)
 
 
 main = Blueprint('main', __name__)
+
+@main.route('/test')
+def tmp():
+    return render_template("teacherSignup.html", enrollName="Amazing Test School")
 
 @main.route('/')
 def index():
@@ -28,7 +32,7 @@ def profile2():
 @main.route('/class')
 @login_required
 def classPage():
-    return render_template('class.html')
+    return render_template('class.html', classCode="654321")
 
 @main.route('/profile')
 @login_required
@@ -37,7 +41,20 @@ def profile():
     #data = Loader.loadEnrollment(enrollId)
     #data['removalPin'] = Loader.getEnrollMasterPin(enrollId)
     #return render_template('profile.html', data=json.dumps(data))
-    return render_template('profile.html', data=json.dumps(Loader.loadEnrollmentPriv(current_user.enrollId)))
+    if current_user.accountType == 'enrollAdmin':
+        return render_template('profile.html', data=json.dumps(Loader.loadEnrollmentPriv(current_user.enrollId)))
+    elif current_user.accountType == 'teacher':
+        return render_template('teacherProfile.html', data=json.dumps(Loader.loadEnrollmentPriv(current_user.enrollId)))
+    else:
+        abort(401)
+
+@main.route('/profile/refreshData')
+@login_required
+def getProfileInfo():
+    if current_user.accountType == 'enrollAdmin':
+        return jsonify(Loader.loadEnrollmentPriv(current_user.enrollId))
+    else:
+        abort(401)
 
 
 @main.route('/profile/updateProfile', methods=['POST'])
@@ -161,6 +178,28 @@ def getProfile():
     else:
         abort(400)
 
+@main.route('/profile/generateSignUpLink')
+@login_required
+def createSignupUrl():
+    assert current_user.enrollId
+    data = Loader.loadEnrollmentPriv(current_user.enrollId, privOnly=True)
+    if len(data['signUpLinks']) > 5:#Should not happen with javascript validation but just in case
+        abort(403)
+    else:
+        signature = signer.sign(current_user.enrollId).decode()
+        response = {signature: int(signer.unsign(signature, return_timestamp=True)[1].timestamp() * 1000)}
+        data['signUpLinks'].update(response)
+        Setter.saveEnrollPriv(current_user.enrollId, data)
+        return jsonify(response)
+
+@main.route('/profile/addTeacher', methods=['POST'])
+@login_required
+def addTeacherManual():
+    assert current_user.enrollId
+    print(request.form)
+    flash('Successfully added new teacher')
+    return redirect(url_for('main.profile'))
+
 #Signalling
 connWriteLock = Lock()
 
@@ -169,7 +208,7 @@ def AddRoomData(room, dataType, newData):
     fileName = room+".json"
     roomsDir = "./server/storage/cache/roomData/"
     if not os.path.isfile(roomsDir+fileName):
-        data = {'offer':None, 'answer': None, 'hostICE': [], 'remoteICE': [], 'hostAttempt': 1, 'clientAttempt': 1, 'creationTime': str(datetime.datetime.now())}
+        data = {'offer':None, 'answer': None, 'hostICE': [], 'remoteICE': [], 'hostAttempt': 1, 'clientAttempt': 1, 'creationTime': int(datetime.datetime.now(tz=datetime.timezone.utc).timestamp())}
     else:
         with open(roomsDir+fileName, "r") as f:
             data = json.load(f)
@@ -251,17 +290,48 @@ def delConn(path):
         pass
     return "", 200
 
+@main.route('/api/v2/enrollment/<path:path>')
+def getEnrollment(path):
+    if request.headers.get("email"):
+        studentInfo = Loader.loadStudent(path, request.headers.get("email"))
+        if studentInfo:
+            data = Loader.loadEnrollment(path)
+            if request.headers.get("lastSync") and int(request.headers.get("lastSync")) > data["lastUpdated"] and int(request.headers.get("lastSync")) > studentInfo["lastModified"]:
+                return "", 304 #Resource Not Modified
+            data["studentInfo"] = studentInfo
+            return data
+        else:
+            abort(401)#Unauthorised
+    else:
+        abort(400)
+
+@main.route('/api/v2/removeEnrollmentReq')
+def removeEnrollmentRequest():
+    None if (request.headers.get('enrollCode') and request.headers.get('email')) else abort(400)
+    enrollDir = './server/storage/schools/'+request.headers.get('enrollCode').lower()
+    if os.path.isFile(enrollDir+'/students/'+request.headers.get('email').lower()+'.json'):
+        studentInfo = Loader.loadStudent(path, request.headers.get("email"))
+        if studentInfo['canRemove']:
+            os.remove(enrollDir+'/students/'+request.headers.get('email').lower()+'.json')
+            return send_from_directory('storage', 'MagicPacket1.bin')
+        else:
+            return abort(403)#Forbidden
+    else:
+        return send_from_directory('storage', 'MagicPacket1.bin')
+    #If students fork server, they can exploit this to get the secret magic packet.
+    #Thus I am going to rely on the fact that SSL exists and the students can't add their own certificates.
 
 
 
-#OLD API
+
+#OLD API To remove
 
 @main.route('/api/v1/profile/<path:path>')
-def sendProfile(path):
+def sendProfileOld(path):
     return send_from_directory('storage/profiles', path.lower()+".json")
 
 @main.route('/api/v1/enrollment/<path:path>')
-def getEnrollment(path):
+def getEnrollmentOld(path):
     try:
         data = Loader.loadEnrollment(path)
         if request.headers.get("lastSync") and int(request.headers.get("lastSync")) > data["lastUpdated"]:
