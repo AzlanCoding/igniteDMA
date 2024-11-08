@@ -250,7 +250,12 @@ async function updateEnrollData(enrollCode){
     }
     else if (response.status == 404){
       await logData("error","Server cannot find enrollment");
-      throw new Error("Cannot find enrollment!\nPlease press the <code>Remove Enrollment</code> button, enter the Backup Removal PIN provided by your admin and press <code>Remove Enrollment</code>.");
+      if (typeof initialData.enrollData == 'undefined'){
+        throw new Error("Cannot find enrollment!\nPlease check that you have entered the correct Enrollment Code.");
+      }
+      else {
+        throw new Error("Cannot find enrollment!\nPlease press the <code>Remove Enrollment</code> button, enter the Backup Removal PIN provided by your admin and press <code>Remove Enrollment</code>.");
+      }
       //// TODO: Make popup to decide whether to remove profile
     }
     else {
