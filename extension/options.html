@@ -190,15 +190,15 @@
         }
         75% {
           transform: scale(1.1);
+          opacity: 1;
         }
         100% {
           transform: scale(1);
-          opacity: 1;
         }
       }
       @keyframes closeNotifi {
         0%{
-          opacity: 0.9;
+          opacity: 1;
           max-height: 20vh;
           margin-bottom: var(--bulma-block-spacing);
         }
@@ -210,9 +210,11 @@
       }
       @keyframes showModal {
         0% {
+          opacity: 0;
           transform: scale(0);
         }
         75% {
+          opacity: 1;
           transform: scale(1.1);
         }
         100% {
@@ -224,9 +226,11 @@
           transform: scale(1);
         }
         25% {
+          opacity: 1;
           transform: scale(1.1);
         }
         100% {
+          opacity: 0;
           transform: scale(0);
         }
       }
