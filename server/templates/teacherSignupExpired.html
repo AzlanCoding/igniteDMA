@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <title>Ignite DMA Manager – Invite Link Expired</title>
+{% endblock %}
+
+{% block content %}
+  <div class="column is-8 is-offset-2">
+    <h class="title">Invite Link Expired</h>
+    <p class="subtitle">
+      The invite link given to you has expired.<br>
+      The invite link expired on <u>{{ expiryDate }}</u>.<br>
+      Please ask your administrator to extend the validity period or request a new one.
+    </p>
+    <a class="button is-block is-info is-large is-fullwidth" onclick="this.classList.add('is-loading')" href="/">Back to Home</a>
+  </div>
+{% endblock %}

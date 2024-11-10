@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-import random, string, json, os, datetime, secrets
+import random, string, json, os, datetime, secrets, shutil
 from .jsonDatabase import Loader, Setter
-from .models import User, EnrollData
-from . import db
+from .models import User#, EnrollData
+from . import db, signer
 
 
 def genRandomEnrollCode():
@@ -75,40 +75,99 @@ def signup_post():
         flash('The email you entered already exists. Go to the Login page to login.')
         return redirect(url_for('auth.signup'))
 
-    with open("./server/storage/schools/default.json", 'r', encoding='utf8') as f:
-        data = json.load(f)
-        f.close()
+    #with open("./server/storage/schools/default.json", 'r', encoding='utf8') as f:
+    #    data = json.load(f)
+    #    f.close()
 
     enrollCode = genRandomEnrollCode()
-    while (os.path.isfile("./server/storage/schools/"+enrollCode+'.json')):
+    while (os.path.isdir("./server/storage/schools/"+enrollCode)):
         enrollCode = genRandomEnrollCode()
 
+    #data["enrollCode"] = enrollCode
+
+    #newProfiles = []
+
+    #for profileCode in data["profiles"]:
+    #    newProfileCode = genRandomProfileCode()
+    #    while (os.path.isfile("./server/storage/profiles/"+newProfileCode+'.json')):
+    #        newProfileCode = genRandomProfileCode()
+    #    Setter.saveProfile(newProfileCode, Loader.loadProfile(profileCode));
+    #    newProfiles.append(newProfileCode)
+
+    #data["profiles"] = newProfiles
+
+    #Setter.saveEnroll(enrollCode,data)
+
+    #Copy Default Enroll Config
+    shutil.copytree("./server/storage/schools/default", "./server/storage/schools/"+enrollCode)
+
+    #Change EnrollCode
+    data = Loader.loadEnrollmentRaw(enrollCode)
     data["enrollCode"] = enrollCode
+    Setter.saveEnroll(enrollCode, data)
 
-    newProfiles = []
-
-    for profileCode in data["profiles"]:
+    #Change profile codes
+    profilesDir = "./server/storage/schools/"+enrollCode+"/profiles/"
+    for f in os.listdir(profilesDir):
         newProfileCode = genRandomProfileCode()
-        while (os.path.isfile("./server/storage/profiles/"+newProfileCode+'.json')):
+        while (os.path.isfile(os.path.join(profilesDir, newProfileCode+'.json'))):
             newProfileCode = genRandomProfileCode()
-        Setter.saveProfile(newProfileCode, Loader.loadProfile(profileCode));
-        newProfiles.append(newProfileCode)
+        os.rename(os.path.join(profilesDir, f), os.path.join(profilesDir, newProfileCode+'.json'))
 
-    data["profiles"] = newProfiles
+    #Change RemovalPin
+    data = Loader.loadEnrollmentPriv(enrollCode, privOnly=True)
+    data["RemovalPin"] = genRandomPassword()
+    Setter.saveEnrollPriv(enrollCode, data)
 
-    Setter.saveEnroll(enrollCode,data)
+
 
     newUser = User(email=email, accountType="enrollAdmin", enrollId=enrollCode, password=generate_password_hash(password, method='scrypt'), accountStatus="unlocked")
     db.session.add(newUser)
     db.session.commit()
 
-    newEnrollPassword = EnrollData(id=enrollCode, masterPin=genRandomPassword())
-    db.session.add(newEnrollPassword)
-    db.session.commit()
+    #newEnrollPassword = EnrollData(id=enrollCode, masterPin=genRandomPassword())
+    #db.session.add(newEnrollPassword)
+    #db.session.commit()
 
     flash("Account creation successful!\nLogin to get started!")
 
     return redirect(url_for('auth.login'))
+
+@auth.route('/signup/<path:path>')
+def teacherSignup(path):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.profile'))
+    if signer.validate(path):
+        enrollCode = signer.unsign(path).decode()
+        enrollData = Loader.loadEnrollmentPriv(enrollCode)
+        if path in enrollData['signUpLinks'].keys():
+            if signer.validate(path, max_age=enrollData["signUpLinksValidityDays"]*86400):
+                return render_template("teacherSignup.html", enrollName=enrollData["enrollName"])
+            else:
+                expireDate = signer.unsign(path, return_timestamp=True)[1] + datetime.timedelta(days=enrollData["signUpLinksValidityDays"])
+                return render_template("teacherSignupExpired.html", expiryDate=expireDate.astimezone().strftime("%-d %B %Y at %H:%M:%S (GMT%z)"))
+        else:
+            return render_template("teacherSignupDeleted.html")
+    else:
+        return render_template("teacherSignupInvalid.html")
+
+@auth.route('/signup/<path:path>', methods=['POST'])
+def teacherSignupPost(path):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.profile'))
+    if signer.validate(path):
+        enrollCode = signer.unsign(path).decode()
+        enrollData = Loader.loadEnrollmentPriv(enrollCode)
+        if path in enrollData['signUpLinks'].keys():
+            if signer.validate(path, max_age=enrollData["signUpLinksValidityDays"]*86400):
+                return str(request.form)
+            else:
+                expireDate = signer.unsign(path, return_timestamp=True)[1] + datetime.timedelta(days=enrollData["signUpLinksValidityDays"])
+                return render_template("teacherSignupExpired.html", expiryDate=expireDate.astimezone().strftime("%-d %B %Y at %H:%M:%S (GMT%z)"))
+        else:
+            return render_template("teacherSignupDeleted.html")
+    else:
+        return render_template("teacherSignupInvalid.html")
 
 @auth.route('/logout')
 @login_required

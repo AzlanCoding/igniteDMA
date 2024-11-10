@@ -9,6 +9,6 @@ class User(UserMixin, db.Model):
     enrollId = db.Column(db.String(100))
     password = db.Column(db.String(100))
 
-class EnrollData(db.Model):
-    id = db.Column(db.String(100),primary_key=True)
-    masterPin = db.Column(db.String(100))
+#class EnrollData(db.Model):
+#    id = db.Column(db.String(100),primary_key=True)
+#    masterPin = db.Column(db.String(100))

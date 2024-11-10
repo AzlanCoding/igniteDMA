@@ -37,7 +37,11 @@
       .modal {/*Prevent accidental click to 'logout' when double click close button*/
         --bulma-modal-close-right: 2.5em;
         --bulma-modal-close-top: 2.5em;
-      }/* TODO: Transitions for modal */
+      }
+
+      .dropdown{
+        --bulma-dropdown-menu-min-width: 10rem;
+      }
 
       html {
         overflow-y: auto;
@@ -59,6 +63,17 @@
       ::-webkit-scrollbar-thumb {
         background: rgba(90, 90, 90);
         border-radius: 1em;
+      }
+
+      .hero .tabs ul{
+        border-bottom: var(--bulma-tabs-border-bottom-width) var(--bulma-tabs-border-bottom-style) var(--bulma-tabs-border-bottom-color);
+      }
+      tr{
+        transition: all 0.5s linear;
+      }
+      .modal-card-body.has-no-footer{
+        border-end-end-radius: var(--bulma-modal-card-foot-radius);
+        border-end-start-radius: var(--bulma-modal-card-foot-radius);
       }
 
 

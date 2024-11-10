@@ -7,11 +7,30 @@
   </h2>
   {% if not current_user.is_authenticated %}
     <button id="scanButton" class="button is-primary is-inverted is-outlined" onclick="document.getElementById('scanButton').className = 'button is-loading';window.location.href += 'signup';">Sign Up</button>
+    <script type="speculationrules">
+      {
+        "prerender": [
+          {
+            "urls": ["./login", "./signup"]
+          }
+        ]
+      }
+    </script>
   {% endif %}
   {% if current_user.is_authenticated %}
     <button id="scanButton" class="button is-primary is-inverted is-outlined" onclick="document.getElementById('scanButton').className = 'button is-loading';window.location.href += 'profile';">View Profile</button>
+    <script type="speculationrules">
+      {
+        "prerender": [
+          {
+            "urls": ["./profile"]
+          }
+        ]
+      }
+    </script>
   {% endif %}
   <script>
     window.onpageshow = function() {document.getElementById('scanButton').className = "button is-primary is-inverted is-outlined";};//To reset the button after back button
   </script>
+
 {% endblock %}
