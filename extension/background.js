@@ -317,13 +317,14 @@ function fileAccessSchemeExtPageSwitch(){
   fileAccessSchemeExtPage = true;
 }
 async function blockingWindow(url, callback){
+  await logData("info","BlockingWindow Initilising!");
   return chrome.windows.create({
     url: url,
     type: "popup",
     state: "fullscreen"
-  }, callback).then(async() => {
+  }, callback)/*.then(async() => {
     logData("info","BlockingWindow Initilised!");
-  })
+  })*/
 }
 function relaunchEnforceWindow(windowId) {
   let timenow = new Date().getTime();
@@ -558,19 +559,23 @@ async function handleExternalAction(sendResponse, func, args){
 
 
 /*---Main Startup---*/
-function initExtension(){
-  if (typeof syncEnrollmentInterval == 'undefined'){
-    syncEnrollment();
-    let syncEnrollmentInterval = setInterval(syncEnrollment, 30000);
+async function initExtension(){
+  let startupInfo = chrome.storage.session.get('initStarted')
+  if (typeof startupInfo.initStarted == 'undefined'){
+    await chrome.storage.session.set({initStarted: true})
+    if (typeof syncEnrollmentInterval == 'undefined'){
+      syncEnrollment();
+      let syncEnrollmentInterval = setInterval(syncEnrollment, 30000);
+    }
+    if (typeof syncEnrollmentInterval == 'undefined'){
+      let setBlockedSitesInterval = setBlockedSitesLoop();
+    }
+    if (typeof permissionsCheckInterval == 'undefined'){
+      checkPermissions();
+      let permissionsCheckInterval = setInterval(checkPermissions, 1000);
+    }
+    return logData("info","EXTENSION INITILISATION COMPLETE");
   }
-  if (typeof syncEnrollmentInterval == 'undefined'){
-    let setBlockedSitesInterval = setBlockedSitesLoop();
-  }
-  if (typeof permissionsCheckInterval == 'undefined'){
-    checkPermissions();
-    let permissionsCheckInterval = setInterval(checkPermissions, 1000);
-  }
-  return logData("info","EXTENSION INITILISATION COMPLETE");
 }
 
 if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ == '__main__':` in python
@@ -601,4 +606,5 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
 
   chrome.runtime.onStartup.addListener(initExtension);
   chrome.runtime.onInstalled.addListener(initExtension);
+  initExtension();
 }
