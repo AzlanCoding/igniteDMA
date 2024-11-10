@@ -3,7 +3,7 @@
   "enabled": true,
   "type": "webfilterV1",
   "enforceDays": "12345",
-  "lastModified": 1724546700471,
+  "lastUpdated": 1724546700471,
   "enforceTime": {
     "start": "08:00",
     "end": "14:00"

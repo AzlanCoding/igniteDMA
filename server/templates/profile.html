@@ -124,13 +124,13 @@
       width: unset;
     }
 
-    .enrollTableContainer th {
+    .table-container th {
       white-space: nowrap;
     }
-    .enrollTableContainer td {
+    .table-container td {
       width: 100%;
     }
-    td button:hover, th button:hover{
+    td button:hover{
       background: rgba(100,100,100,0.5);
       transition: background 0.5s ease-in-out;
     }
@@ -195,72 +195,6 @@
     .blocked-site-data {
       width: unset;
     }
-    .table-checkbox{
-      width: 0;
-      max-width: 0em;
-      opacity: 0;
-      scale: 0;
-      pointer-events: none;
-      padding: 0.5em 0em !important;
-      transition: all 0.75s;
-      align-content: center;
-    }
-    .table-checkbox.is-active{
-      max-width: 2em;
-      opacity: 1;
-      scale: 1.5;
-      pointer-events: auto;
-      padding: var(--bulma-table-cell-padding)!important;
-      transition: all 0.75s;
-    }
-    tbody tr td{
-      align-content: center;
-    }
-    a.dropdown-item{
-      color: hsl(var(--bulma-dropdown-item-h),var(--bulma-dropdown-item-s),var(--bulma-dropdown-item-color-l)) !important;
-    }
-    a.dropdown-item, button.dropdown-item {
-      padding-inline-end: 1rem;
-    }
-    a.dropdown-item .material-symbols-outlined, button.dropdown-item .material-symbols-outlined{
-      vertical-align:middle;
-      flex:auto;
-      text-align:end;
-      margin-left: 1em;
-    }
-    .dropdown .dropdown-menu{
-      opacity: 0;
-    }
-    .dropdown.is-active .dropdown-menu{
-      animation: showModalBg 0.5s ease-out forwards;
-    }
-    .dropdown.is-active.is-closing .dropdown-menu{
-      animation: closeModalBg 0.5s ease-out forwards;
-    }
-
-    .box-btn{
-      user-select: none;
-      cursor: pointer;
-      background-color: hsl(var(--bulma-dark-h),var(--bulma-dark-s),var(--bulma-dark-l)) !important;
-      transition: background-color 0.5s ease;
-    }
-    .box-btn:hover{
-      background-color: #404654 !important;
-    }
-    #addTeacherModal .modal-card{
-      width: auto;
-      max-width: 90%;
-    }
-    tr td .delBtnInvite{
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease-in;
-    }
-    tr:hover td .delBtnInvite{
-      pointer-events: auto;
-      opacity: 1;
-    }
-
 
 
     .loadSign{
@@ -311,7 +245,7 @@
   <h2 class="subtitle">Welcome to Ignite DMA Manager</h2>
   <div class="box">
     <p class="title is-size-4">Enrollment Information</p>
-    <div class="table-container block is-fullwidth enrollTableContainer">
+    <div class="table-container block is-fullwidth">
       <table class="table is-striped is-hoverable is-fullwidth has-text-centered">
         <tbody>
           <tr class="is-selected title is-4">
@@ -319,9 +253,9 @@
             <td>
               <div id="enrollNameView">
                 <p id="enrollName" style="display: inline;"></p>
-                <!--button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="enrollNameToggle(true)">edit</button-->
+                <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="enrollNameToggle(true)">edit</button>
               </div>
-              <!--div id="enrollNameEdit" style="display: inline-block;" class="hidden">
+              <div id="enrollNameEdit" style="display: inline-block;" class="hidden">
                 <div class="field is-grouped">
                   <p class="control is-expanded">
                     <input id="enrollNameEditField" class="input" style="min-width: 10em;" type="text" onkeypress="enrollNameKeypress(event)" oninput="enrollNameKeypress(event)" placeholder="Enter School Name">
@@ -329,18 +263,15 @@
                   <p class="control">
                     <button id="enrollNameSubmitBtn" class="button is-success" onclick="enrollNameSubmit()" disabled>Save</button>
                     <button class="button" onclick="enrollNameToggle(false)">Cancel</button>
-                    <!-a- BUG: Buttons overflow on mobile -a->
+                    <!-- BUG: Buttons overflow on mobile -->
                   </p>
                 </div>
-              </div-->
+              </div>
             </td>
           </tr>
           <tr>
             <th>Enrollment Code</th>
-            <td>
-              <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="copyEnrollCode()">content_copy</button>
-              <p id="enrollCode" style="display: inline"></p>
-            </td>
+            <td id="enrollCode"></td>
           </tr>
           <tr>
             <th>Last Modified</th>
@@ -349,7 +280,6 @@
           <tr>
             <th>Removal PIN</th>
             <td style="user-select: none">
-              <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="copyPin()">content_copy</button>
               <p id="enrollPin" style="display: inline;vertical-align: bottom;user-select: text">••••••••</p>
               <button class="material-symbols-outlined" style="display: inline;vertical-align: bottom;" onclick="enrollPinToggle(this)">visibility</button>
             </td>
@@ -358,14 +288,13 @@
       </table>
     </div>
     <div class="buttons is-right">
-      <button class="button is-warning" onclick="enrollSettings()">Enrollment Settings</button>
-      <!--button class="button is-warning" onclick="enrollEdit()">Change Removal PIN</button-->
+      <button class="button is-warning" onclick="enrollEdit()">Change Removal PIN</button>
       <!--button class="button is-info" onclick="notifi('is-info', 'Sorry!', 'This feature is not ready yet.')">Print Information</button-->
     </div>
 
 
     <p class="title is-size-4">Profiles</p>
-    <div class="box block has-background-dark profileContainer" style="margin-bottom: 3em">
+    <div class="box block has-background-dark profileContainer">
 
       <!--div class="box profileBox" data-profile="jijsij" onclick="profileInfo(this)">
         <div class="profileTop">
@@ -406,180 +335,6 @@
       </div>
 
     </div>
-
-
-
-    <p class="title is-size-4" style="margin-bottom: -0.5em">Manage People</p>
-    <div id="managePeopleTabs" class="tabs">
-      <ul>
-        <li class="is-active"><a onclick="toggleTab(this, 'teachers')"><span>Teachers</span></a></li>
-        <li><a onclick="toggleTab(this, 'students')"><span>Students</span></a></li>
-      </ul>
-    </div>
-    <div id="tabs-content-container" style="margin-bottom: 0.5em; padding-inline: 1rem">
-      <div id="teachers-tab-content" class="tab-content">
-        <div class="field has-addons" style="padding-inline: 3rem;overflow-y: scroll"><!-- BUG: Displays HORRIBLY in mobile -->
-          <div class="control has-icons-left" style="width:100%">
-            <input class="input is-rounded has-text-left" type="text" placeholder="Search" />
-            <span class="icon is-left">
-              <span class="material-symbols-outlined">search</span>
-            </span>
-          </div>
-          <div class="control">
-            <span class="select">
-              <select>
-                <option>Search by Name</option>
-                <option>Search by Username</option>
-              </select>
-            </span>
-          </div>
-          <div class="control">
-            <button class="button is-info is-rounded">Search</button>
-          </div>
-        </div>
-        <div id="teachersBtnsNoSelect" style="margin-bottom: 0.5em; display: flex">
-          <button class="button is-warning is-small" onclick="tableCheckboxEnable()">Select Multiple</button>
-          <div class="buttons is-right" style="flex: auto">
-            <button class="button is-success is-small" onclick="openTeacherModal()">Add Teacher</button>
-          </div>
-        </div>
-        <div id="teachersBtnsSelect" class="hidden" style="margin-bottom: 0.5em; display: flex">
-          <button class="button is-warning is-small" onclick="tableCheckboxDisable()">Cancel Selection</button>
-          <div class="buttons is-right" style="flex: auto">
-            <button class="button is-warning is-small" disabled>Reset Password</button>
-            <button class="button is-danger is-small" disabled>Delete Teacher</button>
-          </div>
-        </div>
-        <div class="table-container block is-fullwidth">
-          <table class="table is-striped is-hoverable is-fullwidth has-text-left">
-            <thead>
-              <tr class="is-selected">
-                <th class="table-checkbox"><input type="checkbox" /></th>
-                <th style="padding-top: 0.25em;padding-left: 0.75em;width: 50%">
-                  <div style="display: flex">
-                    <p style="font-size: 1.5em">Name</p>
-                    <div class="dropdown is-right" style="margin-left: auto">
-                      <div class="dropdown-trigger">
-                        <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-name-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
-                      </div>
-                      <div class="dropdown-menu" id="teachers-name-dropdown-menu" role="menu">
-                        <div class="dropdown-content">
-                          <div class="dropdown-item" style="padding-bottom: 0">
-                            <p class="title is-5">Sort By</p>
-                          </div>
-                          <hr class="dropdown-divider" />
-                          <button class="dropdown-item" style="display:flex">
-                            <p style="display: inline">Ascending (A-Z)</p>
-                            <span class="material-symbols-outlined">check</span>
-                          </button>
-                          <button class="dropdown-item" style="display:flex">
-                            <p style="display: inline">Descending (Z-A)</p>
-                            <span class="material-symbols-outlined" style="opacity: 0">check</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </th>
-                <th style="padding-top: 0.25em;padding-left: 0.75em;width:30%">
-                  <div style="display: flex">
-                    <p style="font-size: 1.5em">Username</p>
-                    <div class="dropdown is-right" style="margin-left: auto">
-                      <div class="dropdown-trigger">
-                        <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-username-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
-                      </div>
-                      <div class="dropdown-menu" id="teachers-username-dropdown-menu" role="menu">
-                        <div class="dropdown-content">
-                          <div class="dropdown-item" style="padding-bottom: 0">
-                            <p class="title is-5">Sort By</p>
-                          </div>
-                          <hr class="dropdown-divider" />
-                          <button class="dropdown-item" style="display:flex">
-                            <p style="display: inline">Ascending (A-Z)</p>
-                            <span class="material-symbols-outlined">check</span>
-                          </button>
-                          <button class="dropdown-item" style="display:flex">
-                            <p style="display: inline">Descending (Z-A)</p>
-                            <span class="material-symbols-outlined" style="opacity: 0">check</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </th>
-                <th style="padding-top: 0.25em;padding-left: 0.75em;width:20%">
-                  <div style="display: flex">
-                    <p style="font-size: 1.5em">Account Status</p>
-                    <div class="dropdown is-right" style="margin-left: auto">
-                      <div class="dropdown-trigger">
-                        <button class="material-symbols-outlined" aria-haspopup="true" aria-controls="teachers-acc-status-dropdown-menu" style="height:100%" onclick="toggleDropdown(this)">filter_list</button>
-                      </div>
-                      <div class="dropdown-menu" id="teachers-acc-status-dropdown-menu" role="menu">
-                        <div class="dropdown-content">
-                          <div class="dropdown-item" style="padding-bottom: 0">
-                            <p class="title is-5">Filter</p>
-                          </div>
-                          <hr class="dropdown-divider" />
-                          <button class="dropdown-item" style="display:flex">
-                            <p style="display: inline">Active</p>
-                            <span class="material-symbols-outlined">check</span>
-                          </button>
-                          <button class="dropdown-item" style="display:flex">
-                            <p style="display: inline">Locked</p>
-                            <span class="material-symbols-outlined">check</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
-              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
-              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
-              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
-              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
-              <tr><td class="table-checkbox"><input type="checkbox" /></td><td>Mr Tan</td><td>AmazingTan</td><td><button class="button is-success status">Active</button></td></tr>
-              <tr class="has-text-centered">
-                <td colSpan="4"><button class="button loadSign" id="loading"></button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div id="students-tab-content" class="tab-content hidden">
-        <div class="buttons is-right" style="margin-bottom: 0.5em">
-          <button class="button is-warning">Select Multiple</button>
-        </div>
-        <div class="table-container block is-fullwidth">
-          <table class="table is-striped is-hoverable is-fullwidth has-text-left">
-            <thead>
-              <tr class="is-selected">
-                <th>Email</th>
-                <th><abr title="The last time the student's device connected to IgniteDMA server">Last Online</abr></th>
-                <th>Client Version</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!--tr>
-                <td>Mr Tan</td>
-                <td>AmazingTan</td>
-                <td><button class="button is-success status">Active</button></td>
-              </tr-->
-              <tr class="has-text-centered">
-                <td colSpan="3"><button class="button loadSign" id="loading"></button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-
-
-
   </div>
   <div id="profileModal" class="modal">
     <div class="modal-background"></div>
@@ -677,7 +432,7 @@
           </div>
           <textarea style="display: none" id="blockedSitesList" name="blockedSitesList" hidden></textarea>
           <input type="text" style="display: none" id="profileFormCode" name="profileCode" hidden></input>
-          <input type="number" style="display: none" id="profileFormLastModified" name="profileLastModified" hidden></input>
+          <input type="number" style="display: none" id="profileFormLastUpdated" name="profileLastUpdated" hidden></input>
           <input type="text" style="display: none" id="profileFormType" name="profileType" hidden></input>
         </form>
       </section>
@@ -769,250 +524,6 @@
       </footer>
     </div>
   </div>
-  <div class="modal" id="addTeacherModal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <button class="material-symbols-outlined editButton hidden" onclick="openTeacherModal()">arrow_back</button>
-        <p class="modal-card-title" id="addTeacherModalTitle">Add Teachers</p>
-        <button class="delete" aria-label="close" onclick="closeModalCard(this)"></button>
-      </header>
-      <section class="modal-card-body has-no-footer">
-        <div class="columns hidden" id="addTeacherSelectBox">
-          <div class="column">
-            <div class="box has-background-dark box-btn" style="height: 100%" onclick="addTeacherMan()">
-              <span class="material-symbols-outlined" style="font-size: 2em">person</span>
-              <p class="subtitle">Add one Teacher</p>
-            </div>
-          </div>
-          <div class="column">
-            <div class="box has-background-dark box-btn" style="height: 100%" onclick="addTeacherMany()">
-              <span class="material-symbols-outlined" style="font-size: 2em">group</span>
-              <p class="subtitle">Add many teachers using invite link</p>
-            </div>
-          </div>
-        </div>
-        <form class="hidden" action="/profile/addTeacher" id="addTeacherManualForm">
-          <label class="label" style="margin-bottom: 0">Account Information</label>
-          <label class="subtitle is-6">Enter the name students address the teacher and a username for the teacher to log into IgniteDMA Manager</label>
-          <div class="field"  style="margin-top: var(--bulma-label-spacing);">
-            <div class="control has-icons-left">
-              <input class="input" name="name" placeholder="Name (e.g, Mr Tan)" type="text" required>
-              <span class="icon is-large is-left">
-                <span class="material-symbols-outlined">id_card</span>
-              </span>
-            </div>
-          </div>
-          <div class="field">
-            <div class="control has-icons-left">
-              <input class="input" name="username" placeholder="Username (e.g, AmazingTan)" type="text" required>
-              <span class="icon is-large is-left">
-                <span class="material-symbols-outlined">person</span>
-              </span>
-            </div>
-          </div>
-          <label class="label" style="margin-bottom: 0; margin-top: var(--bulma-label-spacing);">Temporary Password</label>
-          <label class="subtitle is-6">Teacher will be prompted to add their own password on first sign in.</label>
-          <div class="field" style="margin-top: var(--bulma-label-spacing);">
-            <div class="field has-addons">
-              <div class="control has-icons-left" style="width: 100%">
-                <input class="input" name="password_default" type="password" placeholder="Password" required>
-                <span class="icon is-large is-left">
-                  <span class="material-symbols-outlined">key</span>
-                </span>
-              </div>
-              <div class="control">
-                <button class="button" onclick="toggleVisibility(this)">
-                  <span class="material-symbols-outlined" id="visibilityIcon">visibility</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </form>
-        <div class="hidden" id="addTeachersMany">
-          <p class="title">Generate Invite Link</p>
-          <p class="subtitle">
-            Send this invite link to teachers so that they can join this enrollment.
-            This invite link will be valid for <u id='enrollInviteExpireLengthString'>days</u>.<br>
-            You can extend the validity period for your invite links and manage all of your invite links in your <a onclick="goToEnrollSettings()">enrollment settings</a>.<br>
-            Take note that you can only have up to <u>5 invite links</u>.
-          </p>
-          <button class="button is-success" onclick="generateSignUpLink(this)">Generate Invite Link</button>
-        </div>
-        <div class="hidden" id="addTeachersManyError">
-          <p class="title">Too Many Invite Links</p>
-          <p class="subtitle">
-            This enrollment has more than 5 generated invite links.<br>
-            Please delete expired/unused links in your enrollment settings.
-          </p>
-          <button class="button is-warning" onclick="goToEnrollSettings()">Go to enrollment settings</button>
-        </div>
-      </section>
-      <!--footer class="modal-card-foot">
-        <div class="buttons">
-          <button class="button" onclick="closeModalCard(this.parentElement)">Cancel</button>
-          <button class="button is-success" id="confirmModalSubmitBtn">OK</button>
-        </div>
-      </footer-->
-    </div>
-  </div>
-  <div class="modal" id="inviteLinkGeneratedModal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <p class="modal-card-title">Invite Link Generated</p>
-        <button class="delete" aria-label="close" onclick="closeModalCard(this)"></button>
-      </header>
-      <section class="modal-card-body has-no-footer">
-        <p class="subtitle">
-          Your invite link has been successfully generated!<br>
-          It is valid till <u id="generatedInviteLinkValidTillDate"></u>.
-        </p>
-        <div class="field has-addons">
-          <div class="control has-icons-left" style="width:100%">
-            <input class="input is-link" type="text" id="generatedInviteLink" value="https://ignitedma.mooo.com/signup/enrollcode.signature.signature" readOnly>
-            <span class="icon is-left">
-              <span class="material-symbols-outlined">link</span>
-            </span>
-          </div>
-          <div class="control">
-            <button type="submit" class="button is-link" onclick="copyInviteLink()">
-              <span class="material-symbols-outlined">content_copy</span>
-            </button>
-          </div>
-        </div>
-      </section>
-      <!--footer class="modal-card-foot">
-        <div class="buttons">
-          <button class="button" onclick="closeModalCard(this.parentElement)">Cancel</button>
-          <button class="button is-success" id="confirmModalSubmitBtn">OK</button>
-        </div>
-      </footer-->
-    </div>
-  </div>
-  <div class="modal" id="enrollSettings">
-    <div class="modal-background"></div>
-    <div class="modal-card" style="width: 70%">
-      <header class="modal-card-head">
-        <p class="modal-card-title">Enrollment Settings</p>
-        <button class="delete" aria-label="close" onclick="closeModalCard(this)"></button>
-      </header>
-      <section class="modal-card-body has-text-left">
-        <form>
-          <p class="title is-4" style="margin-bottom: 1rem;">Enrollment Infromation</p>
-          <div class="field is-horizontal">
-            <div class="field-label">
-              <label class="label">School Name</label>
-            </div>
-            <div class="field-body">
-              <div class="field">
-                <div class="control has-icons-left">
-                  <input class="input has-text-left" type="text" placeholder="Enter Name of School" id="enrollNameEditField">
-                  <span class="icon is-small is-left">
-                    <span class="material-symbols-outlined">domain</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p class="title is-4" style="margin-top: var(--bulma-block-spacing);margin-bottom: 1rem;">Account Management</p>
-          <div class="field is-horizontal">
-            <div class="field-label">
-              <label class="label">Student Account Creation</label>
-            </div>
-            <div class="field-body">
-              <div class="field">
-                <div class="control">
-                  <div class="select is-fullwidth">
-                    <select>
-                      <option>Automatically add any student with enrollment code</option>
-                      <option>Only allow manually added student accounts</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="field is-horizontal">
-            <div class="field-label">
-              <label class="label">Default Reset Password</label>
-            </div>
-            <div class="field-body has-no-footer">
-              <div class="field">
-                <div class="field has-addons">
-                  <div class="control has-icons-left" style="width: 100%">
-                    <input class="input has-text-left" type="password" placeholder="Enter Password" id="enrollDefaultPaswd">
-                    <span class="icon is-small is-left">
-                      <span class="material-symbols-outlined">lock_reset</span>
-                    </span>
-                  </div>
-                  <div class="control">
-                    <button class="button" onclick="toggleVisibility(this)">
-                      <span class="material-symbols-outlined">visibility</span>
-                    </button>
-                  </div>
-                </div>
-                <p class="help">This is the default password that the system will use to reset and create a teacher's account.</p>
-              </div>
-            </div>
-          </div>
-          <div class="field is-horizontal">
-            <div class="field-label">
-              <label class="label">Invite Link Validity Period</label>
-            </div>
-            <div class="field-body">
-              <div class="field">
-                <div class="field has-addons">
-                  <p class="control">
-                    <input class="input" type="number" min="1" max="30" id="enrollInviteValidPeriod">
-                  </p>
-                  <p class="control">
-                    <a class="button is-static">
-                      Days
-                    </a>
-                  </p>
-                </div>
-                <p class="help">How long generated invite links are vaid for. (Max: 30 Days)</p>
-              </div>
-            </div>
-          </div>
-          <div class="buttons is-right">
-            <button class="button is-success">Save Changes</button>
-          </div>
-        </form>
-        <p class="title is-4" style="margin-top: var(--bulma-block-spacing);margin-bottom: 1rem;">Invite Links</p>
-        <div class="table-container block is-fullwidth">
-          <table class="table is-striped is-hoverable is-fullwidth has-text-left">
-            <thead>
-              <tr class="is-selected">
-                <th style="width: 60%">Link</th>
-                <th style="width: 20%">Created On</th>
-                <th style="width: 20%">Valid Till</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="enrollInviteLinkList">
-              <tr>
-                <td>https://ignitedma.mooo.com/signup/u40iqn7q.ZywWyg.667Oh2CwqgrUUPGh4e-o8bud1_Y</td>
-                <td>AmazingTan</td>
-                <td>Active</td>
-                <td><button class="material-symbols-outlined has-text-danger delBtnInvite">delete</button></td>
-              </tr>
-              <tr class="has-text-centered hidden" id="noInvitePlaceholder">
-                <td colSpan="4">You have not created any invite links yet</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <!--footer class="modal-card-foot">
-        <div class="buttons">
-          <button class="button" onclick="closeModalCard(this.parentElement)">Cancel</button>
-          <button class="button is-success">Save</button>
-        </div>
-      </footer-->
-    </div>
-  </div>
   <div id="userData" style="display: none">
     {{ data }}
   </div>
@@ -1080,28 +591,12 @@
         $("#enrollPinSubmit").addClass("is-loading");
       }
     }
-    function copyPin(){
-      let pin = JSON.parse($('#userData').text())["RemovalPin"];
-      navigator.clipboard.writeText(pin).then(() => {
-        notifi("is-success", "Success", "PIN copied to clipboard!");
-      }).catch(() => {
-        notifi("is-danger", "Failed", "Failed to copy PIN to clipboard!");
-      });
-    }
-    function copyEnrollCode(){
-      let pin = JSON.parse($('#userData').text())["enrollCode"].toUpperCase();
-      navigator.clipboard.writeText(pin).then(() => {
-        notifi("is-success", "Success", "Enrollment Code copied to clipboard!");
-      }).catch(() => {
-        notifi("is-danger", "Failed", "Failed to copy Enrollment Code to clipboard!");
-      });
-    }
     let enrollPinTimeout;
     function enrollPinToggle(elm){
       clearTimeout(enrollPinTimeout);
       if ($(elm).text() == "visibility"){
-        let data = JSON.parse($('#userData').text());
-        $("#enrollPin").text(data["RemovalPin"]);
+        let data = JSON.parse($('#userData').html());
+        $("#enrollPin").html(data["removalPin"]);
         $(elm).text("visibility_off");
         enrollPinTimeout = setTimeout(() => {
           enrollPinClose(elm);
@@ -1270,14 +765,14 @@
     let profileModalData;
     function renderModalData(profileCode){
       $('#profileModal').attr('data-profileCode', profileCode);
-      return fetch("/profile/getProfile", {cache: "no-cache", headers: {"profileCode": profileCode}}).then(parseResponse).then((data) => {
+      return fetch("../api/v1/profile/"+profileCode, {cache: "no-cache"}).then(parseResponse).then((data) => {
         profileModalData = data;
-        //console.dir(data);
+        console.dir(data);
         $("#profileModal #profileName").text(data.name);
         renderModalStatus(data);
         $("#profileModal #profileDay").text(parseDays(data.enforceDays));
         $("#profileModal #profileTime").text(parseTime(data.enforceTime));
-        $("#profileModal #profileLastUpdated").text(fixTimeString(new Date(data.lastModified).toLocaleString('en-US')));
+        $("#profileModal #profileLastUpdated").text(fixTimeString(new Date(data.lastUpdated).toLocaleString('en-US')));
         $("#profileBlockedSites").children().remove();
         data.blockedSites.forEach((site) => {
           $("#profileBlockedSites").append($('<input>',{class: "blocked-site-entry input", readOnly: true, value: site}));
@@ -1507,134 +1002,11 @@
         $("#blockedSitesList").text(urlList.join('\n'));
         $("#profileFormCode").val($('#profileModal').attr('data-profileCode'));
         $("#profileFormType").val(profileModalData.type);
-        $("#profileFormLastModified").val(profileModalData.lastModified);
+        $("#profileFormLastUpdated").val(profileModalData.lastUpdated);
         //Last Updated sent so that server can check if profile was edited from
         //another computer while user was editiing. Resulting in 2 diffrent versions
       }
     }
-
-    function toggleTab(elm, tabName){
-      $("#managePeopleTabs .is-active").removeClass("is-active");
-      $(elm).parent().addClass("is-active");
-      $("#tabs-content-container .tab-content").not("#"+tabName+"-tab-content").addClass("hidden");
-      $("#tabs-content-container #"+tabName+"-tab-content").removeClass("hidden");
-    }
-    function tableCheckboxEnable(){
-      $("#teachersBtnsSelect").removeClass("hidden")
-      $("#teachersBtnsNoSelect").addClass("hidden")
-      $(".table-checkbox").addClass("is-active")
-    }
-    function tableCheckboxDisable(){
-      $("#teachersBtnsNoSelect").removeClass("hidden")
-      $("#teachersBtnsSelect").addClass("hidden")
-      $(".table-checkbox").removeClass("is-active")
-    }
-    function toggleDropdown(elm){
-      //$(elm.parentElement.parentElement).toggleClass("is-active");
-      if($(elm.parentElement.parentElement).hasClass("is-active")){
-        $(elm.parentElement.parentElement).addClass("is-closing");
-        setTimeout(()=>{
-          $(elm.parentElement.parentElement).removeClass("is-active").removeClass("is-closing")
-        }, 500);
-      }
-      else{
-        $(elm.parentElement.parentElement).addClass("is-active")
-      }
-    }
-
-    function openTeacherModal(){
-      $('#addTeacherModal .modal-card-head button.material-symbols-outlined').addClass('hidden')
-      $('#addTeacherModalTitle').text("Add Teachers");
-      $('#addTeacherSelectBox').removeClass('hidden');
-      $('#addTeachersManyError').addClass('hidden');
-      $('#addTeachersMany').addClass('hidden');
-      $('#addTeacherManualForm').addClass('hidden');
-      $('#addTeacherModal').addClass('is-active');
-    }
-    function addTeacherMan(){
-      $('#addTeacherModal .modal-card-head button.material-symbols-outlined').removeClass('hidden')
-      $('#addTeacherModalTitle').text("Add Teacher")
-      $('#addTeacherSelectBox').addClass('hidden');
-      $('#addTeachersManyError').addClass('hidden');
-      $('#addTeachersMany').addClass('hidden');
-      $('#addTeacherManualForm').removeClass('hidden');
-    }
-    function addTeacherMany(){
-      let data = JSON.parse($('#userData').text());
-      if (Object.keys(data.signUpLinks).length >= 5){
-        $('#addTeacherModal .modal-card-head button.material-symbols-outlined').removeClass('hidden')
-        $('#addTeacherModalTitle').text("Add Teachers")
-        $('#addTeacherSelectBox').addClass('hidden');
-        $('#addTeachersManyError').removeClass('hidden');
-        $('#addTeachersMany').addClass('hidden');
-        $('#addTeacherManualForm').addClass('hidden');
-      }
-      else{
-        $('#addTeacherModal .modal-card-head button.material-symbols-outlined').removeClass('hidden')
-        $('#addTeacherModalTitle').text("Add Teachers")
-        $('#addTeacherSelectBox').addClass('hidden');
-        $('#addTeachersManyError').addClass('hidden');
-        $('#addTeachersMany').removeClass('hidden');
-        $('#addTeacherManualForm').addClass('hidden');
-      }
-    }
-    function goToEnrollSettings(){
-      closeModalFunc('#addTeacherModal');
-      $('#enrollSettings').addClass('is-active');
-    }
-    async function generateSignUpLink(elm){
-      $(elm).addClass("is-loading");
-      let req = await fetch("/profile/generateSignUpLink").catch(handleFetchError);
-      if (req.ok){
-        let signature = await req.json();
-        let url = window.location.origin + '/signup/' + Object.keys(signature)[0];
-        await refreshData();
-        renderUI();
-        $("#generatedInviteLink").val(url);
-        let offsetTime = JSON.parse($('#userData').text()).signUpLinksValidityDays*86400000;
-        $("#generatedInviteLinkValidTillDate").text(fixTimeString(new Date(Object.values(signature)[0]+offsetTime).toLocaleString('en-US')))
-        closeModalFunc('#addTeacherModal');
-        $('#inviteLinkGeneratedModal').addClass('is-active')
-      }
-      else {
-        notifi('is-danger',"Error", "Failed to generate sign up link.<br>Status Code: "+req.status)
-      }
-      $(elm).removeClass("is-loading");
-    }
-    function copyInviteLink(){
-      navigator.clipboard.writeText($("#generatedInviteLink").val()).then(() => {
-        notifi("is-success", "Success", "Invite link copied to clipboard!");
-      }).catch(() => {
-        notifi("is-danger", "Failed", "Failed to copy invite link to clipboard!");
-      });
-    }
-    function enrollSettings(){
-      $('#enrollSettings').addClass('is-active');
-    }
-
-
-    /* new utils */
-    function closeModalFunc(selector){
-      $(selector).addClass("is-closing");
-      setTimeout(()=>{
-        $(selector).removeClass("is-active").removeClass("is-closing")
-      }, 500);
-    }
-    function handleFetchError(err){
-      notifi('is-danger',"Error", "An unexpected error has occured.<br>Error: "+err.message);
-    }
-    async function refreshData(){
-      let req = await fetch('./profile/refreshData').catch(handleFetchError);
-      if (req.ok){
-        $("#userData").text(await req.text());
-      }
-      else{
-        notifi('is-danger',"Error", "Failed to refresh enrollment data.<br>Status Code: "+req.status)
-      }
-    }
-    /*end of new utils*/
-
-
     function renderUI(){
       let now = new Date();
       if (now.getHours() >= 18){
@@ -1655,7 +1027,7 @@
       $('#enrollName').text(data.enrollName);
       $('#enrollNameEditField').val(data.enrollName);
       $('#enrollCode').text(data.enrollCode.toUpperCase());
-      $('#enrollLastUpdated').text(fixTimeString(new Date(data.lastModified).toLocaleString('en-US')));
+      $('#enrollLastUpdated').text(fixTimeString(new Date(data.lastUpdated).toLocaleString('en-US')));
       $(".profileContainer").children().not('.profilePlaceholder').remove();
       Object.entries(data.profiles).forEach(([profileCode,profileData]) => {
         let profileBox = $(".profilePlaceholder").first().clone().removeClass('profilePlaceholder');
@@ -1674,31 +1046,6 @@
         }
         $(".profileContainer").prepend(profileBox);
       });
-      $("#enrollInviteExpireLengthString").text(data.signUpLinksValidityDays+" days");
-      $('#enrollDefaultPaswd').val(data.teachersDefaultResetPin);
-      $('#enrollInviteValidPeriod').val(data.signUpLinksValidityDays);
-      $("#enrollInviteLinkList").children().not("#noInvitePlaceholder").remove()
-      Object.entries(data.signUpLinks).forEach(([signature, timestamp]) => {
-        let urlData = $("<td>").text(window.location.origin + '/signup/' + signature);
-        let createData = $("<td>").text(fixTimeString(new Date(timestamp).toLocaleString('en-US')));
-        let offsetTime = data.signUpLinksValidityDays*86400000;
-        let validTillData = $("<td>").text(fixTimeString(new Date(timestamp+offsetTime).toLocaleString('en-US')));
-        if (new Date(timestamp+offsetTime) > new Date()){
-          validTillData.addClass('has-text-success')
-        }
-        else{
-          validTillData.addClass('has-text-danger')
-        }
-        let tableRow = $("<tr>").append([urlData, createData, validTillData, $('<td><button class="material-symbols-outlined has-text-danger delBtnInvite">delete</button></td>')]);
-        $("#enrollInviteLinkList").append(tableRow);
-      });
-      if (Object.entries(data.signUpLinks).length > 0){
-        $("#noInvitePlaceholder").addClass('hidden');
-      }
-      else{
-        $("#noInvitePlaceholder").removeClass('hidden')
-      }
-
     }
 
     function updateUIloop(){

@@ -2,4 +2,3 @@
 *.pem
 instance/
 releases/
-server/templates/maintenance.html
