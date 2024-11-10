@@ -574,7 +574,7 @@ async function initExtension(){
       checkPermissions();
       let permissionsCheckInterval = setInterval(checkPermissions, 1000);
     }
-    return await logData("info","EXTENSION INITILISATION COMPLETE");
+    return logData("info","EXTENSION INITILISATION COMPLETE");
   }
 }
 
@@ -604,13 +604,7 @@ if (typeof window == 'undefined') { //The javascript equivilant of `if __name__ 
     }
   });
 
-  /*chrome.runtime.onStartup.addListener(initExtension);
-  chrome.runtime.onInstalled.addListener(initExtension);*/
-  chrome.runtime.onStartup.addListener(async() => {
-    await logData("info","EXTENSION STARTUP");
-  });
-  chrome.runtime.onInstalled.addListener(async() => {
-    await logData("info","EXTENSION INSTALL SUCCESS");
-  });
+  chrome.runtime.onStartup.addListener(initExtension);
+  chrome.runtime.onInstalled.addListener(initExtension);
   initExtension();
 }
